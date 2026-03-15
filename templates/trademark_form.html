@@ -521,9 +521,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
     const fieldsToShow = {
-        'under_review': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}'],
-        'accepted': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.decision_date.id_for_label }}', '{{ form.publication_date.id_for_label }}', '{{ form.publication_number.id_for_label }}', '{{ form.registration_date.id_for_label }}', '{{ form.registration_number.id_for_label }}'],
-        'rejected': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.decision_date.id_for_label }}', '{{ form.rejection_reasons.id_for_label }}', '{{ form.appeal_date.id_for_label }}', '{{ form.appeal_hearing_date.id_for_label }}']
+        'under_review': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.status.id_for_label }}'],
+        'accepted': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.status.id_for_label }}', '{{ form.decision_date.id_for_label }}', '{{ form.publication_date.id_for_label }}', '{{ form.publication_number.id_for_label }}', '{{ form.registration_date.id_for_label }}', '{{ form.registration_number.id_for_label }}'],
+        'rejected': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.status.id_for_label }}', '{{ form.decision_date.id_for_label }}', '{{ form.rejection_reasons.id_for_label }}', '{{ form.appeal_date.id_for_label }}', '{{ form.appeal_hearing_date.id_for_label }}']
     };
 
     function toggleFields() {

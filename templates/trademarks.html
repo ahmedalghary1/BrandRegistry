@@ -58,7 +58,7 @@
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الرقم</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الإيداع</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الفئات</th>
-                  {% if request.GET.status == 'accepted' %}
+                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الحالة</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ القرار</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الإشهار</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ النشر عن القبول</th>
@@ -67,14 +67,9 @@
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ التسجيل</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">رقم التسجيل</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ انتهاء الحماية</th>
-                  {% elif request.GET.status == 'rejected' %}
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ القرار</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">أسباب الرفض</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ التظلم</th>
                   <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ جلسة التظلم</th>
-                  {% else %}
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">القرار</th>
-                  {% endif %}
                   <th class="py-4 px-6 font-semibold text-end whitespace-nowrap">إجراءات</th>
                 </tr>
               </thead>
@@ -100,21 +95,6 @@
                   <td class="py-4 px-6">
                     <span class="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs font-semibold">{{ trademark.categories }}</span>
                   </td>
-                  {% if request.GET.status == 'accepted' %}
-                  <td class="py-4 px-6">{{ trademark.decision_date|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_date|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_date|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_number }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_expiry|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">{{ trademark.registration_date|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">{{ trademark.registration_number }}</td>
-                  <td class="py-4 px-6">{{ trademark.protection_expiry|date:"d/m/Y" }}</td>
-                  {% elif request.GET.status == 'rejected' %}
-                  <td class="py-4 px-6">{{ trademark.decision_date|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">{{ trademark.rejection_reasons }}</td>
-                  <td class="py-4 px-6">{{ trademark.appeal_date|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">{{ trademark.appeal_hearing_date|date:"d/m/Y" }}</td>
-                  {% else %}
                   <td class="py-4 px-6">
                     {% if trademark.status == 'accepted' %}
                     <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-success/15 text-success-foreground border-success/30">مقبول</span>
@@ -124,7 +104,17 @@
                     <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-destructive/15 text-destructive-foreground border-destructive/30">مرفوض</span>
                     {% endif %}
                   </td>
-                  {% endif %}
+                  <td class="py-4 px-6">{{ trademark.decision_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.publication_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.publication_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.publication_number|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.publication_expiry|date:"d/m/Y"|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.registration_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.registration_number|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.protection_expiry|date:"d/m/Y"|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.rejection_reasons|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.appeal_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
+                  <td class="py-4 px-6">{{ trademark.appeal_hearing_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
                   <td class="py-4 px-6 text-end">
                     <div class="flex items-center justify-end space-x-2 space-x-reverse">
                       <a href="{% url 'registry:trademarks:edit' trademark.pk %}" title="عرض وتعديل" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent h-9 w-9 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 transition-colors">
