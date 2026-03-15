@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}النماذج الصناعية{% endblock %}
+
+{% block content %}
+<main class="flex-1 flex flex-col min-w-0 bg-secondary/30 h-screen overflow-y-auto lg:pt-0 pt-16">
+  <div class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+    <div style="opacity: 1; transform: none;">
+      <div class="space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 class="text-3xl font-bold font-display text-foreground">النماذج الصناعية</h1>
+            <p class="text-muted-foreground mt-1">إدارة ومتابعة جميع النماذج الصناعية المسجلة وقيد الفحص</p>
+          </div>
+          <a href="{% url 'registry:designs:add' %}" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary-border min-h-9 py-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg px-6 h-12 rounded-xl text-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-5 h-5 me-2" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+            إضافة نموذج جديد
+          </a>
+        </div>
+        <div class="shadcn-card rounded-xl border border-card-border text-card-foreground border-none shadow-md bg-card/50 backdrop-blur-sm">
+          <div class="p-4 flex flex-col md:flex-row gap-4">
+            <form method="get" class="relative flex-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+              <input type="text" name="q" value="{{ request.GET.q }}" class="flex w-full border px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ps-10 h-12 rounded-xl bg-background border-border shadow-inner" placeholder="ابحث برقم أو اسم النموذج...">
+            </form>
+            <select name="status" onchange="this.form.submit()" class="flex items-center justify-between border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full md:w-64 h-12 rounded-xl">
+              <option value="">الكل</option>
+              <option value="under_review" {% if request.GET.status == 'under_review' %}selected{% endif %}>قيد الفحص</option>
+              <option value="accepted" {% if request.GET.status == 'accepted' %}selected{% endif %}>مقبول</option>
+              <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>مرفوض</option>
+            </select>
+          </div>
+        </div>
+        <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-start">
+              <thead class="bg-primary/5 text-primary">
+                <tr>
+                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">النموذج</th>
+                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الرقم</th>
+                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الإيداع</th>
+                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">القرار</th>
+                  <th class="py-4 px-6 font-semibold text-end whitespace-nowrap">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                {% for design in designs %}
+                <tr class="hover:bg-muted/30 transition-colors">
+                  <td class="py-4 px-6">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                      {% if design.image %}
+                      <img alt="{{ design.name }}" class="w-10 h-10 rounded-lg object-cover border border-border shadow-sm" src="{{ design.image.url }}">
+                      {% else %}
+                      <div class="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                        <svg class="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                      </div>
+                      {% endif %}
+                      <span class="font-bold text-foreground">{{ design.name }}</span>
+                    </div>
+                  </td>
+                  <td class="py-4 px-6 font-mono text-sm">{{ design.number }}</td>
+                  <td class="py-4 px-6">{{ design.filing_date|date:"d/m/Y" }}</td>
+                  <td class="py-4 px-6">
+                    {% if design.status == 'accepted' %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-success/15 text-success-foreground border-success/30">مقبول</span>
+                    {% elif design.status == 'under_review' %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-warning/15 text-warning-foreground border-warning/30">قيد الفحص</span>
+                    {% elif design.status == 'rejected' %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-destructive/15 text-destructive-foreground border-destructive/30">مرفوض</span>
+                    {% endif %}
+                  </td>
+                  <td class="py-4 px-6 text-end">
+                    <div class="flex items-center justify-end space-x-2 space-x-reverse">
+                      <a href="{% url 'registry:designs:edit' design.pk %}" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent h-9 w-9 text-primary hover:text-primary hover:bg-primary/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path></svg>
+                      </a>
+                      <a href="{% url 'registry:designs:delete' design.pk %}" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 lucide-trash-2 w-4 h-4" aria-hidden="true"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="py-8 px-6 text-center text-muted-foreground">
+                    لا توجد نماذج صناعية
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% if is_paginated %}
+        <div class="flex justify-center mt-6">
+          <nav class="flex items-center space-x-1 space-x-reverse">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">السابق</a>
+            {% endif %}
+            <span class="px-3 py-2">{{ page_obj.number }} من {{ paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">التالي</a>
+            {% endif %}
+          </nav>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard w-5 h-5" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg><span>لوحة التحكم</span></div></a><a href="./trademarks.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-5 h-5" aria-hidden="true"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg><span>العلامات التجارية</span></div></a><a href="./designs.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  bg-accent/10 text-accent font-semibold shadow-inner border border-accent/20
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shapes w-5 h-5 text-accent" aria-hidden="true"><path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"></path><rect x="3" y="14" width="7" height="7" rx="1"></rect><circle cx="17.5" cy="17.5" r="3.5"></circle></svg><span>النماذج الصناعية</span></div></a><a href="./reports.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-chart-column-increasing w-5 h-5" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M8 18v-2"></path><path d="M12 18v-4"></path><path d="M16 18v-6"></path></svg><span>التقارير والإحصائيات</span></div><a href="./settings.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-5 h-5" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V20a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg><span>الإعدادات</span></div></a></nav><div class="p-4 border-t border-primary-foreground/10"><button class="flex items-center space-x-3 space-x-reverse px-4 py-3 w-full text-primary-foreground/70 hover:text-destructive transition-colors rounded-xl hover:bg-destructive/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out w-5 h-5" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg><span>تسجيل الخروج</span></button></div></aside><div class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-primary text-primary-foreground z-30 flex items-center justify-between px-4 shadow-md"><div class="flex items-center"><img alt="Logo" class="w-8 h-8 me-2 rounded-md" src="./designs_files/logo-gold.png"><h1 class="font-display font-bold text-lg text-accent">إدارة العلامات</h1></div><button class="p-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu w-6 h-6" aria-hidden="true"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button></div><main class="flex-1 flex flex-col min-w-0 bg-secondary/30 h-screen overflow-y-auto lg:pt-0 pt-16"><div class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full"><div style="opacity: 1; transform: none;"><div class="space-y-6"><div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"><div><h1 class="text-3xl font-bold font-display text-foreground">النماذج الصناعية</h1><p class="text-muted-foreground mt-1">إدارة التكوينات والرسوم والنماذج الصناعية المستقلة</p></div><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary-border min-h-9 py-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/20 px-6 h-12 rounded-xl text-md"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-5 h-5 me-2" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>إضافة نموذج جديد</button></div><div class="shadcn-card rounded-xl border border-card-border text-card-foreground border-none shadow-md bg-card/50 backdrop-blur-sm"><div class="p-4 flex flex-col md:flex-row gap-4"><div class="relative flex-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg><input class="flex w-full border px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ps-10 h-12 rounded-xl bg-background border-border shadow-inner" placeholder="ابحث برقم أو اسم النموذج..." value=""></div><button type="button" role="combobox" aria-controls="radix-«r8»" aria-expanded="false" aria-autocomplete="none" dir="ltr" data-state="closed" class="flex items-center justify-between border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&amp;&gt;span]:line-clamp-1 w-full md:w-64 h-12 rounded-xl"><span style="pointer-events: none;">الكل</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down h-4 w-4 opacity-50" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div></div><div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-start"><thead class="bg-accent/5 text-accent-foreground/80"><tr><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">النموذج</th><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الرقم</th><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الإيداع</th><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">القرار</th><th class="py-4 px-6 font-semibold text-end whitespace-nowrap">إجراءات</th></tr></thead><tbody class="divide-y divide-border"><tr><td colspan="5" class="py-12 text-center text-muted-foreground">لا توجد نماذج مسجلة</td></tr></tbody></table></div></div></div></div></div></main></div><div role="region" aria-label="Notifications (F8)" tabindex="-1" style="pointer-events: none;"><ol tabindex="-1" class="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]"></ol></div></div>
+  <script src="./designs_files/replit-pill.global.js.download" data-referral-code="qg18pdvf9u1z" data-repl-id="407be3b7-981e-4c88-949d-e984725cf0cc"></script>
+
+<div id="replit-pill-host"><template shadowrootmode="closed"><style>
+        #replit-pill {
+          position: fixed;
+          bottom: 48px;
+          right: 48px;
+          border-radius: 120px;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          z-index: 1000000;
+          white-space: nowrap;
+          cursor: pointer;
+          overflow: hidden;
+          background-color: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          color: #f0f2f6;
+          box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.05), 1px 1px 1px 0px rgba(255, 255, 255, 0.1);
+          transition: transform 0.2s ease;
+        }
+        #replit-pill:hover {
+          transform: scale(1.05);
+        }
+        #replit-pill .shimmer {
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          transition: transform 0.7s ease-in-out;
+          background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+          pointer-events: none;
+        }
+        #replit-pill:hover .shimmer {
+          transform: translateX(100%);
+        }
+        #replit-pill .badge-content {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          position: relative;
+          flex: 0 0 auto;
+        }
+        #replit-pill .replit-logo {
+          color: #f0f2f6;
+        }
+        #replit-pill .replit-text {
+          font-weight: 500;
+          line-height: 20px;
+          color: #f0f2f6;
+        }
+        #replit-pill .close-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2px;
+          flex: 0 0 auto;
+          border-radius: 64px;
+          width: 12px;
+          height: 12px;
+          min-width: 0;
+          cursor: pointer;
+          border: none;
+          box-sizing: border-box;
+          background-color: transparent;
+          transition: background-color 0.2s ease;
+        }
+        #replit-pill .close-button:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+        #replit-pill .close-button:focus-visible {
+          outline: 1px solid #e6e9ef;
+          outline-offset: 1px;
+        }
+        #replit-pill .close-icon {
+          width: 8px;
+          height: 8px;
+          color: #e6e9ef;
+        }
+      </style><div id="replit-pill"><div class="shimmer"></div><div class="badge-content"><svg width="16" height="16" viewBox="0 0 23 28" fill="none" class="replit-logo">
+        <path d="M0 1.72499C0 0.772305 0.772305 0 1.72499 0H9.77495C10.7276 0 11.4999 0.772305 11.4999 1.72499V9.19996H1.72499C0.772305 9.19996 0 8.42765 0 7.47496V1.72499Z" fill="currentColor"></path>
+        <path d="M11.4999 9.19996H21.2749C22.2276 9.19996 22.9999 9.97226 22.9999 10.9249V16.6749C22.9999 17.6276 22.2276 18.3999 21.2749 18.3999H11.4999V9.19996Z" fill="currentColor"></path>
+        <path d="M0 20.1249C0 19.1722 0.772305 18.3999 1.72499 18.3999H11.4999V25.8749C11.4999 26.8276 10.7276 27.5999 9.77495 27.5999H1.72499C0.772305 27.5999 0 26.8276 0 25.8749V20.1249Z" fill="currentColor"></path>
+      </svg><div class="replit-text">Made with Replit</div></div><button class="close-button" aria-label="Close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="close-icon">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg></button></div></template></div></body></html>

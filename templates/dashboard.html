@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+<main class="flex-1 flex flex-col min-w-0 bg-secondary/30 h-screen overflow-y-auto lg:pt-0 pt-16">
+  <div class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+    <div class="space-y-8">
+      <!-- Breadcrumbs -->
+      <nav class="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground">
+        <span class="text-foreground font-medium">لوحة التحكم</span>
+      </nav>
+
+      <!-- Hero Section -->
+      <div class="relative rounded-3xl overflow-hidden bg-primary p-8 shadow-xl">
+        <div class="absolute inset-0 opacity-20" style="background-image: url('{% static "dashboard_files/hero-pattern.png" %}'); background-size: cover; background-position: center center;"></div>
+        <div class="relative z-10">
+          <h1 class="text-3xl md:text-4xl font-display font-bold text-white mb-2">مرحباً بك في النظام المركزي</h1>
+          <p class="text-primary-foreground/80 max-w-2xl text-lg">إدارة متكاملة للعلامات التجارية والنماذج الصناعية، توفر لك رؤية شاملة وتنبيهات استباقية لمواعيد الحماية والإجراءات القانونية.</p>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in" style="animation-delay: 0.1s;">
+          <div class="p-6 flex items-center space-x-4 space-x-reverse">
+            <div class="p-4 rounded-2xl bg-primary/10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-8 h-8 text-primary" aria-hidden="true">
+                <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path>
+                <circle cx="12" cy="8" r="6"></circle>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-muted-foreground mb-1">إجمالي العلامات</p>
+              <h3 class="text-3xl font-bold text-foreground font-display">{{ total_trademarks }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in" style="animation-delay: 0.2s;">
+          <div class="p-6 flex items-center space-x-4 space-x-reverse">
+            <div class="p-4 rounded-2xl bg-success/10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check w-8 h-8 text-success-foreground" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-muted-foreground mb-1">علامات مقبولة</p>
+              <h3 class="text-3xl font-bold text-foreground font-display">{{ accepted_trademarks }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in" style="animation-delay: 0.3s;">
+          <div class="p-6 flex items-center space-x-4 space-x-reverse">
+            <div class="p-4 rounded-2xl bg-warning/10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock w-8 h-8 text-warning-foreground" aria-hidden="true">
+                <path d="M12 6v6l4 2"></path>
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-muted-foreground mb-1">علامات تحت الفحص</p>
+              <h3 class="text-3xl font-bold text-foreground font-display">{{ under_review_trademarks }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in" style="animation-delay: 0.4s;">
+          <div class="p-6 flex items-center space-x-4 space-x-reverse">
+            <div class="p-4 rounded-2xl bg-accent/10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shapes w-8 h-8 text-accent" aria-hidden="true">
+                <path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"></path>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                <circle cx="17.5" cy="17.5" r="3.5"></circle>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-muted-foreground mb-1">إجمالي النماذج</p>
+              <h3 class="text-3xl font-bold text-foreground font-display">{{ total_designs }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expiring Trademarks Alert -->
+      <div class="space-y-4">
+        <div class="flex items-center space-x-2 space-x-reverse">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert w-6 h-6 text-destructive" aria-hidden="true">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <h2 class="text-2xl font-bold font-display text-foreground">تنبيهات انتهاء الحماية (خلال 30 يوم)</h2>
+        </div>
+
+        {% if expiring_trademarks %}
+          <div class="space-y-4">
+            {% for tm in expiring_trademarks %}
+            <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg p-6">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4 space-x-reverse">
+                  <div class="p-3 rounded-2xl bg-destructive/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert w-6 h-6 text-destructive" aria-hidden="true">
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+                      <path d="M12 9v4"></path>
+                      <path d="M12 17h.01"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-lg">{{ tm.name }}</h3>
+                    <p class="text-muted-foreground">رقم: {{ tm.number }} - تنتهي في: {{ tm.protection_expiry|date:"d/m/Y" }}</p>
+                  </div>
+                </div>
+                <a href="{% url 'registry:trademarks:edit' tm.pk %}" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                  عرض التفاصيل
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg overflow-hidden">
+            <div class="p-12 text-center text-muted-foreground flex flex-col items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check w-16 h-16 text-success-foreground/50 mb-4" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+              <p class="text-lg font-medium">لا توجد حمايات تقترب من الانتهاء قريباً</p>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock content %}
+          box-sizing: border-box;
+          background-color: transparent;
+          transition: background-color 0.2s ease;
+        }
+        #replit-pill .close-button:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+        #replit-pill .close-button:focus-visible {
+          outline: 1px solid #e6e9ef;
+          outline-offset: 1px;
+        }
+        #replit-pill .close-icon {
+          width: 8px;
+          height: 8px;
+          color: #e6e9ef;
+        }
+      </style><div id="replit-pill"><div class="shimmer"></div><div class="badge-content"><svg width="16" height="16" viewBox="0 0 23 28" fill="none" class="replit-logo">
+        <path d="M0 1.72499C0 0.772305 0.772305 0 1.72499 0H9.77495C10.7276 0 11.4999 0.772305 11.4999 1.72499V9.19996H1.72499C0.772305 9.19996 0 8.42765 0 7.47496V1.72499Z" fill="currentColor"></path>
+        <path d="M11.4999 9.19996H21.2749C22.2276 9.19996 22.9999 9.97226 22.9999 10.9249V16.6749C22.9999 17.6276 22.2276 18.3999 21.2749 18.3999H11.4999V9.19996Z" fill="currentColor"></path>
+        <path d="M0 20.1249C0 19.1722 0.772305 18.3999 1.72499 18.3999H11.4999V25.8749C11.4999 26.8276 10.7276 27.5999 9.77495 27.5999H1.72499C0.772305 27.5999 0 26.8276 0 25.8749V20.1249Z" fill="currentColor"></path>
+      </svg><div class="replit-text">Made with Replit</div></div><button class="close-button" aria-label="Close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="close-icon">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg></button></div></template></div></body></html>

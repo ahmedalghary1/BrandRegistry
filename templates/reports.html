@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}التقارير والإحصائيات{% endblock %}
+
+{% block content %}
+<main class="flex-1 flex flex-col min-w-0 bg-secondary/30 h-screen overflow-y-auto lg:pt-0 pt-16">
+  <div class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+    <div style="opacity: 1; transform: none;">
+      <div class="space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 class="text-3xl font-bold font-display text-foreground">التقارير والإحصائيات</h1>
+            <p class="text-muted-foreground mt-1">عرض التقارير والإحصائيات المتعلقة بالعلامات والنماذج الصناعية</p>
+          </div>
+        </div>
+        <!-- Add reports content here -->
+        <div class="space-y-6">
+          <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">تقارير العلامات التجارية</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center">
+                <h4 class="font-semibold mb-2">تحت الفحص</h4>
+                <div class="space-y-2">
+                  <a href="?export=trademarks_pdf&status=under_review" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+                      <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                    </svg>
+                    PDF
+                  </a>
+                  <a href="?export=trademarks_excel&status=under_review" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                      <polyline points="14,2 14,8 20,8"></polyline>
+                    </svg>
+                    Excel
+                  </a>
+                  <a href="?export=trademarks_csv&status=under_review" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                    CSV
+                  </a>
+                </div>
+              </div>
+              <div class="text-center">
+                <h4 class="font-semibold mb-2">مقبول</h4>
+                <div class="space-y-2">
+                  <a href="?export=trademarks_pdf&status=accepted" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    PDF
+                  </a>
+                  <a href="?export=trademarks_excel&status=accepted" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+                    Excel
+                  </a>
+                  <a href="?export=trademarks_csv&status=accepted" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                    CSV
+                  </a>
+                </div>
+              </div>
+              <div class="text-center">
+                <h4 class="font-semibold mb-2">مرفوض</h4>
+                <div class="space-y-2">
+                  <a href="?export=trademarks_pdf&status=rejected" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    PDF
+                  </a>
+                  <a href="?export=trademarks_excel&status=rejected" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+                    Excel
+                  </a>
+                  <a href="?export=trademarks_csv&status=rejected" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                    CSV
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">تقارير النماذج الصناعية</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center">
+                <h4 class="font-semibold mb-2">تحت الفحص</h4>
+                <div class="space-y-2">
+                  <a href="?export=designs_pdf&status=under_review" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    PDF
+                  </a>
+                  <a href="?export=designs_excel&status=under_review" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+                    Excel
+                  </a>
+                  <a href="?export=designs_csv&status=under_review" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                    CSV
+                  </a>
+                </div>
+              </div>
+              <div class="text-center">
+                <h4 class="font-semibold mb-2">مقبول</h4>
+                <div class="space-y-2">
+                  <a href="?export=designs_pdf&status=accepted" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    PDF
+                  </a>
+                  <a href="?export=designs_excel&status=accepted" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+                    Excel
+                  </a>
+                  <a href="?export=designs_csv&status=accepted" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                    CSV
+                  </a>
+                </div>
+              </div>
+              <div class="text-center">
+                <h4 class="font-semibold mb-2">مرفوض</h4>
+                <div class="space-y-2">
+                  <a href="?export=designs_pdf&status=rejected" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    PDF
+                  </a>
+                  <a href="?export=designs_excel&status=rejected" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+                    Excel
+                  </a>
+                  <a href="?export=designs_csv&status=rejected" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary/20 shadow-xs active:shadow-none min-h-9 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                    CSV
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">إحصائيات العلامات التجارية</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>إجمالي العلامات:</span>
+                <span class="font-bold">{{ total_trademarks }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>مقبول:</span>
+                <span class="font-bold text-green-600">{{ accepted_trademarks }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>قيد الفحص:</span>
+                <span class="font-bold text-yellow-600">{{ under_review_trademarks }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">إحصائيات النماذج الصناعية</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>إجمالي النماذج:</span>
+                <span class="font-bold">{{ total_designs }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">العلامات المنتهية قريباً</h3>
+            <div class="space-y-2">
+              {% for tm in expiring_trademarks %}
+              <div class="flex justify-between">
+                <span>{{ tm.name }}</span>
+                <span class="font-bold text-red-600">{{ tm.protection_expiry|date:"d/m/Y" }}</span>
+              </div>
+              {% empty %}
+              <p class="text-muted-foreground">لا توجد علامات منتهية قريباً</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+    <link rel="stylesheet" crossorigin="" href="./reports_files/index-YyJtHNoA.css">
+  </head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background text-foreground flex" dir="rtl"><aside class="hidden lg:flex w-72 flex-col bg-primary text-primary-foreground shadow-2xl relative z-20"><div class="h-24 flex items-center px-6 bg-primary/95 border-b border-primary-foreground/10"><img alt="Logo" class="w-10 h-10 me-3 drop-shadow-md rounded-md" src="./reports_files/logo-gold.png"><div><h1 class="font-display font-bold text-xl text-accent">الهيئة العامة</h1><p class="text-xs text-primary-foreground/70">للعلامات والنماذج الصناعية</p></div></div><nav class="flex-1 py-8 px-4 space-y-2 overflow-y-auto"><a href="./index.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard w-5 h-5" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg><span>لوحة التحكم</span></div></a><a href="./trademarks.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award w-5 h-5" aria-hidden="true"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg><span>العلامات التجارية</span></div></a><a href="./designs.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shapes w-5 h-5" aria-hidden="true"><path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"></path><rect x="3" y="14" width="7" height="7" rx="1"></rect><circle cx="17.5" cy="17.5" r="3.5"></circle></svg><span>النماذج الصناعية</span></div></a><a href="./reports.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  bg-accent/10 text-accent font-semibold shadow-inner border border-accent/20
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-chart-column-increasing w-5 h-5 text-accent" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M8 18v-2"></path><path d="M12 18v-4"></path><path d="M16 18v-6"></path></svg><span>التقارير والإحصائيات</span></div><a href="./settings.html" class="block"><div class="
+                  flex items-center space-x-3 space-x-reverse px-4 py-3.5 rounded-xl transition-all duration-300
+                  text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground
+                "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-5 h-5" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V20a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H20a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg><span>الإعدادات</span></div></a></nav><div class="p-4 border-t border-primary-foreground/10"><button class="flex items-center space-x-3 space-x-reverse px-4 py-3 w-full text-primary-foreground/70 hover:text-destructive transition-colors rounded-xl hover:bg-destructive/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out w-5 h-5" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg><span>تسجيل الخروج</span></button></div></aside><div class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-primary text-primary-foreground z-30 flex items-center justify-between px-4 shadow-md"><div class="flex items-center"><img alt="Logo" class="w-8 h-8 me-2 rounded-md" src="./reports_files/logo-gold.png"><h1 class="font-display font-bold text-lg text-accent">إدارة العلامات</h1></div><button class="p-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu w-6 h-6" aria-hidden="true"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button></div><main class="flex-1 flex flex-col min-w-0 bg-secondary/30 h-screen overflow-y-auto lg:pt-0 pt-16"><div class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full"><div style="opacity: 1; transform: none;"><div class="space-y-6"><div><h1 class="text-3xl font-bold font-display text-foreground">التقارير الشاملة</h1><p class="text-muted-foreground mt-1">تصدير بيانات العلامات والنماذج حسب حالة القرار</p></div><div class="flex bg-card p-1 rounded-2xl shadow-sm border w-fit"><button class="px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 text-muted-foreground hover:bg-muted scale-95">قيد الفحص</button><button class="px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 bg-primary text-primary-foreground shadow-md scale-100">المقبولة</button><button class="px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 text-muted-foreground hover:bg-muted scale-95">المرفوضة</button></div><div class="shadcn-card rounded-xl border border-card-border text-card-foreground border-none shadow-xl bg-card"><div class="space-y-1.5 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b"><div class="font-semibold tracking-tight text-xl">سجل المقبولة</div><div class="flex space-x-3 space-x-reverse"><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover-elevate active-elevate-2 border [border-color:var(--button-outline)] shadow-xs active:shadow-none min-h-9 px-4 py-2 border-primary/20 hover:bg-primary/5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text w-4 h-4 me-2 text-destructive" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>تصدير PDF</button><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover-elevate active-elevate-2 border [border-color:var(--button-outline)] shadow-xs active:shadow-none min-h-9 px-4 py-2 border-primary/20 hover:bg-primary/5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-table w-4 h-4 me-2 text-success" aria-hidden="true"><path d="M12 3v18"></path><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M3 15h18"></path></svg>تصدير Excel</button></div></div><div class="p-0"><div class="overflow-x-auto"><table class="w-full text-start text-sm"><thead class="bg-muted/50 text-muted-foreground border-b border-border"><tr><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">النوع</th><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الرقم</th><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الاسم</th><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الإيداع</th><th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الانتهاء</th></tr></thead><tbody class="divide-y divide-border"><tr class="hover:bg-muted/30"><td class="py-4 px-6"><span class="bg-primary/10 text-primary px-2 py-1 rounded-md font-medium text-xs">علامة تجارية</span></td><td class="py-4 px-6 font-mono">242777</td><td class="py-4 px-6 font-bold">الوسام</td><td class="py-4 px-6">٩‏/٣‏/٢٠١٢</td><td class="py-4 px-6">٩‏/٣‏/٢٠٢٢</td></tr></tbody></table></div></div></div></div></div></div></main></div><div role="region" aria-label="Notifications (F8)" tabindex="-1" style="pointer-events: none;"><ol tabindex="-1" class="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]"></ol></div></div>
+  <script src="./reports_files/replit-pill.global.js.download" data-referral-code="qg18pdvf9u1z" data-repl-id="407be3b7-981e-4c88-949d-e984725cf0cc"></script>
+
+<div id="replit-pill-host"><template shadowrootmode="closed"><style>
+        #replit-pill {
+          position: fixed;
+          bottom: 48px;
+          right: 48px;
+          border-radius: 120px;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          z-index: 1000000;
+          white-space: nowrap;
+          cursor: pointer;
+          overflow: hidden;
+          background-color: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          color: #f0f2f6;
+          box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.05), 1px 1px 1px 0px rgba(255, 255, 255, 0.1);
+          transition: transform 0.2s ease;
+        }
+        #replit-pill:hover {
+          transform: scale(1.05);
+        }
+        #replit-pill .shimmer {
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          transition: transform 0.7s ease-in-out;
+          background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+          pointer-events: none;
+        }
+        #replit-pill:hover .shimmer {
+          transform: translateX(100%);
+        }
+        #replit-pill .badge-content {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          position: relative;
+          flex: 0 0 auto;
+        }
+        #replit-pill .replit-logo {
+          color: #f0f2f6;
+        }
+        #replit-pill .replit-text {
+          font-weight: 500;
+          line-height: 20px;
+          color: #f0f2f6;
+        }
+        #replit-pill .close-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2px;
+          flex: 0 0 auto;
+          border-radius: 64px;
+          width: 12px;
+          height: 12px;
+          min-width: 0;
+          cursor: pointer;
+          border: none;
+          box-sizing: border-box;
+          background-color: transparent;
+          transition: background-color 0.2s ease;
+        }
+        #replit-pill .close-button:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+        #replit-pill .close-button:focus-visible {
+          outline: 1px solid #e6e9ef;
+          outline-offset: 1px;
+        }
+        #replit-pill .close-icon {
+          width: 8px;
+          height: 8px;
+          color: #e6e9ef;
+        }
+      </style><div id="replit-pill"><div class="shimmer"></div><div class="badge-content"><svg width="16" height="16" viewBox="0 0 23 28" fill="none" class="replit-logo">
+        <path d="M0 1.72499C0 0.772305 0.772305 0 1.72499 0H9.77495C10.7276 0 11.4999 0.772305 11.4999 1.72499V9.19996H1.72499C0.772305 9.19996 0 8.42765 0 7.47496V1.72499Z" fill="currentColor"></path>
+        <path d="M11.4999 9.19996H21.2749C22.2276 9.19996 22.9999 9.97226 22.9999 10.9249V16.6749C22.9999 17.6276 22.2276 18.3999 21.2749 18.3999H11.4999V9.19996Z" fill="currentColor"></path>
+        <path d="M0 20.1249C0 19.1722 0.772305 18.3999 1.72499 18.3999H11.4999V25.8749C11.4999 26.8276 10.7276 27.5999 9.77495 27.5999H1.72499C0.772305 27.5999 0 26.8276 0 25.8749V20.1249Z" fill="currentColor"></path>
+      </svg><div class="replit-text">Made with Replit</div></div><button class="close-button" aria-label="Close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="close-icon">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg></button></div></template></div></body></html>
