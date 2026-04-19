@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load registry_extras %}
+
+{% block title %}{{ design.name }} | {{ app_title }}{% endblock %}
+{% block page_title %}تفاصيل النموذج الصناعي{% endblock %}
+{% block page_subtitle %}عرض كامل لبيانات النموذج الصناعي والرسوم والقرارات{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn-secondary" href="{% url 'registry:designs:list' %}">العودة للقائمة</a>
+  <a class="btn btn-primary" href="{% url 'registry:designs:edit' design.pk %}">تعديل</a>
+{% endblock %}
+
+{% block content %}
+  <div class="breadcrumbs">
+    <a href="{% url 'registry:dashboard' %}">لوحة التحكم</a>
+    <span>/</span>
+    <a href="{% url 'registry:designs:list' %}">النماذج الصناعية</a>
+    <span>/</span>
+    <span>{{ design.name }}</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h3 style="margin: 0 0 0.4rem;">{{ design.name }}</h3>
+      <div class="inline-summary">
+        <span class="summary-pill">رقم النموذج: {{ design.number }}</span>
+        <span class="summary-pill">{% include "partials/status_badge.html" with status=design.status status_display=design.get_status_display %}</span>
+      </div>
+      {% if design.description %}
+        <p class="muted">{{ design.description }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="detail-grid">
+    <div class="card section-card">
+      <div class="section-title"><h3>البيانات الأساسية</h3></div>
+      <div class="detail-list">
+        <div class="detail-item"><strong>تاريخ الإيداع</strong><span>{{ design.filing_date|date:"Y-m-d" }}</span></div>
+        <div class="detail-item"><strong>تاريخ القرار</strong><span>{{ design.decision_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ الإشهار</strong><span>{{ design.announcement_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ النشر عن القبول</strong><span>{{ design.publication_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>عدد الجريدة</strong><span>{{ design.publication_number|default:"—" }}</span></div>
+        <div class="detail-item"><strong>آخر يوم في النشر</strong><span>{{ design.publication_deadline|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ التسجيل</strong><span>{{ design.registration_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>رقم التسجيل</strong><span>{{ design.registration_number|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ انتهاء الحماية</strong><span>{{ design.protection_expiry|date:"Y-m-d"|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="detail-cover">
+      {% if design.image %}
+        <img src="{{ design.image.url }}" alt="{{ design.name }}">
+      {% else %}
+        <div class="muted">لا توجد صورة مرفوعة لهذا النموذج.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="section-grid">
+    <div class="card section-card">
+      <div class="section-title"><h3>ملاحظات الرفض والتظلم</h3></div>
+      <div class="detail-list">
+        <div class="detail-item"><strong>أسباب الرفض</strong><span>{{ design.rejection_reasons|default:"لا توجد" }}</span></div>
+        <div class="detail-item"><strong>تاريخ التظلم</strong><span>{{ design.appeal_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>جلسة التظلم</strong><span>{{ design.appeal_hearing_date|date:"Y-m-d"|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="card section-card">
+      <div class="section-title"><h3>الرسوم</h3></div>
+      <div class="detail-list">
+        <div class="detail-item"><strong>رسوم الإيداع</strong><span>{{ design.filing_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم الفحص</strong><span>{{ design.examination_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم النشر</strong><span>{{ design.publication_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم التسجيل</strong><span>{{ design.registration_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم التظلم</strong><span>{{ design.appeal_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم إضافية</strong><span>{{ design.additional_fee|currency }}</span></div>
+        <div class="detail-item"><strong>الإجمالي</strong><span>{{ design.total_fees|currency }}</span></div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

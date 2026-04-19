@@ -1,562 +1,217 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}{% if form.instance.pk %}تعديل العلامة التجارية{% else %}إضافة علامة تجارية جديدة{% endif %}{% endblock %}
+{% extends "base.html" %}
+{% load registry_extras %}
+
+{% block title %}{% if form.instance.pk %}تعديل علامة تجارية{% else %}إضافة علامة تجارية{% endif %} | {{ app_title }}{% endblock %}
+{% block page_title %}{% if form.instance.pk %}تعديل علامة تجارية{% else %}إضافة علامة تجارية{% endif %}{% endblock %}
+{% block page_subtitle %}إدارة البيانات الأساسية ومراحل القرار والرسوم بصورة منظمة وملائمة للعمل المحلي{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn-secondary" href="{% url 'registry:trademarks:list' %}">العودة للقائمة</a>
+{% endblock %}
 
 {% block content %}
-<main class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-secondary/20 via-background to-primary/5 h-screen overflow-y-auto lg:pt-0 pt-16">
-  <div class="flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full">
-    <div class="space-y-8">
-      <!-- Header Section -->
-      <div class="text-center space-y-4">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-            <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path>
-            <circle cx="12" cy="8" r="6"></circle>
-          </svg>
-        </div>
-        <h1 class="text-4xl font-bold font-display text-foreground bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          {% if form.instance.pk %}تعديل العلامة التجارية{% else %}إضافة علامة تجارية جديدة{% endif %}
-        </h1>
-        <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
-          {% if form.instance.pk %}قم بتحديث بيانات العلامة التجارية أدناه{% else %}أدخل جميع البيانات المطلوبة لتسجيل العلامة التجارية الجديدة{% endif %}
-        </p>
-      </div>
-
-      <!-- Form Card -->
-      <div class="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-2xl overflow-hidden">
-        <div class="bg-gradient-to-r from-primary/5 to-accent/5 px-8 py-6 border-b border-border/30">
-          <h2 class="text-xl font-semibold text-foreground flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-              <polyline points="14,2 14,8 20,8"></polyline>
-            </svg>
-            بيانات العلامة التجارية
-          </h2>
-        </div>
-
-        <form method="post" enctype="multipart/form-data" class="p-8 space-y-8">
-          {% csrf_token %}
-
-          <!-- Basic Information Section -->
-          <div class="space-y-6">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-foreground">المعلومات الأساسية</h3>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Name Field -->
-              <div class="space-y-2">
-                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-foreground flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  اسم العلامة <span class="text-destructive">*</span>
-                </label>
-                <div class="relative">
-                  {{ form.name }}
-                  {% if form.name.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.name.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Number Field -->
-              <div class="space-y-2">
-                <label for="{{ form.number.id_for_label }}" class="block text-sm font-medium text-foreground flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                    <path d="M10 10h4"></path>
-                    <path d="M19 10V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"></path>
-                    <path d="M14 6h-4"></path>
-                    <path d="M14 14h-4"></path>
-                  </svg>
-                  رقم العلامة <span class="text-destructive">*</span>
-                </label>
-                <div class="relative">
-                  {{ form.number }}
-                  {% if form.number.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.number.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Filing Date Field -->
-              <div class="space-y-2">
-                <label for="{{ form.filing_date.id_for_label }}" class="block text-sm font-medium text-foreground flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                    <line x1="16" x2="16" y1="2" y2="6"></line>
-                    <line x1="8" x2="8" y1="2" y2="6"></line>
-                    <line x1="3" x2="21" y1="10" y2="10"></line>
-                  </svg>
-                  تاريخ الإيداع <span class="text-destructive">*</span>
-                </label>
-                <div class="relative">
-                  {{ form.filing_date }}
-                  {% if form.filing_date.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.filing_date.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Status Field -->
-              <div class="space-y-2">
-                <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-foreground flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                  </svg>
-                  الحالة <span class="text-destructive">*</span>
-                </label>
-                <div class="relative">
-                  {{ form.status }}
-                  {% if form.status.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.status.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Logo Upload Section -->
-          <div class="space-y-6">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
-                  <circle cx="9" cy="9" r="2"></circle>
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-foreground">صورة العلامة (اختياري)</h3>
-            </div>
-
-            <div class="space-y-4">
-              <div class="relative">
-                {{ form.image }}
-                {% if form.image.errors %}
-                <div class="text-destructive text-sm flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="m15 9-6 6"></path>
-                    <path d="m9 9 6 6"></path>
-                  </svg>
-                  {{ form.image.errors.0 }}
-                </div>
-                {% endif %}
-              </div>
-
-              {% if form.instance.image %}
-              <div class="bg-muted/50 rounded-lg p-4 border border-dashed border-border">
-                <div class="flex items-center gap-4">
-                  <img src="{{ form.instance.image.url }}" alt="صورة العلامة الحالية" class="w-16 h-16 object-cover rounded-lg border border-border shadow-sm">
-                  <div>
-                    <p class="text-sm font-medium text-foreground">صورة العلامة الحالية</p>
-                    <p class="text-xs text-muted-foreground">سيتم استبدالها عند رفع صورة جديدة</p>
-                  </div>
-                </div>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- Categories Section -->
-          <div class="space-y-6">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-foreground">الفئات</h3>
-            </div>
-
-            <div class="space-y-2">
-              <label for="{{ form.categories.id_for_label }}" class="block text-sm font-medium text-foreground">
-                الفئات (مفصولة بفواصل)
-              </label>
-              <div class="relative">
-                {{ form.categories }}
-                {% if form.categories.errors %}
-                <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="m15 9-6 6"></path>
-                    <path d="m9 9 6 6"></path>
-                  </svg>
-                  {{ form.categories.errors.0 }}
-                </div>
-                {% endif %}
-              </div>
-              <p class="text-xs text-muted-foreground">مثال: 9، 11، 17</p>
-            </div>
-          </div>
-
-          <!-- Additional Information Section -->
-          <div class="space-y-6">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                  <path d="M9 12h6"></path>
-                  <path d="M9 16h6"></path>
-                  <path d="M9 8h6"></path>
-                  <path d="M3 12a9 9 0 0 1 18 0c0 1.09-.2 2.14-.58 3.11A9 9 0 0 1 3 12Z"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-foreground">معلومات إضافية</h3>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Decision Date Field -->
-              <div class="space-y-2">
-                <label for="{{ form.decision_date.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  تاريخ القرار
-                </label>
-                <div class="relative">
-                  {{ form.decision_date }}
-                  {% if form.decision_date.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.decision_date.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Publication Date Field -->
-              <div class="space-y-2">
-                <label for="{{ form.publication_date.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  تاريخ النشر عن القبول
-                </label>
-                <div class="relative">
-                  {{ form.publication_date }}
-                  {% if form.publication_date.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.publication_date.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Publication Number Field -->
-              <div class="space-y-2">
-                <label for="{{ form.publication_number.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  عدد الجريدة
-                </label>
-                <div class="relative">
-                  {{ form.publication_number }}
-                  {% if form.publication_number.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.publication_number.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Registration Date Field -->
-              <div class="space-y-2">
-                <label for="{{ form.registration_date.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  تاريخ التسجيل
-                </label>
-                <div class="relative">
-                  {{ form.registration_date }}
-                  {% if form.registration_date.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.registration_date.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Registration Number Field -->
-              <div class="space-y-2">
-                <label for="{{ form.registration_number.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  رقم التسجيل
-                </label>
-                <div class="relative">
-                  {{ form.registration_number }}
-                  {% if form.registration_number.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.registration_number.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Rejection Reasons Field -->
-              <div class="space-y-2 md:col-span-2">
-                <label for="{{ form.rejection_reasons.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  أسباب الرفض
-                </label>
-                <div class="relative">
-                  {{ form.rejection_reasons }}
-                  {% if form.rejection_reasons.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.rejection_reasons.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Appeal Date Field -->
-              <div class="space-y-2">
-                <label for="{{ form.appeal_date.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  تاريخ التظلم
-                </label>
-                <div class="relative">
-                  {{ form.appeal_date }}
-                  {% if form.appeal_date.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.appeal_date.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Appeal Hearing Date Field -->
-              <div class="space-y-2">
-                <label for="{{ form.appeal_hearing_date.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  تاريخ جلسة التظلم
-                </label>
-                <div class="relative">
-                  {{ form.appeal_hearing_date }}
-                  {% if form.appeal_hearing_date.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.appeal_hearing_date.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Fees Section -->
-          <div class="space-y-6">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold text-foreground">الرسوم</h3>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Filing Fee Field -->
-              <div class="space-y-2">
-                <label for="{{ form.filing_fee.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  رسوم الإيداع
-                </label>
-                <div class="relative">
-                  {{ form.filing_fee }}
-                  {% if form.filing_fee.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.filing_fee.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Examination Fee Field -->
-              <div class="space-y-2">
-                <label for="{{ form.examination_fee.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  رسوم الفحص
-                </label>
-                <div class="relative">
-                  {{ form.examination_fee }}
-                  {% if form.examination_fee.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.examination_fee.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Publication Fee Field -->
-              <div class="space-y-2">
-                <label for="{{ form.publication_fee.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  رسوم النشر
-                </label>
-                <div class="relative">
-                  {{ form.publication_fee }}
-                  {% if form.publication_fee.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.publication_fee.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Registration Fee Field -->
-              <div class="space-y-2">
-                <label for="{{ form.registration_fee.id_for_label }}" class="block text-sm font-medium text-foreground">
-                  رسوم التسجيل
-                </label>
-                <div class="relative">
-                  {{ form.registration_fee }}
-                  {% if form.registration_fee.errors %}
-                  <div class="absolute -bottom-6 left-0 text-destructive text-sm flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m15 9-6 6"></path>
-                      <path d="m9 9 6 6"></path>
-                    </svg>
-                    {{ form.registration_fee.errors.0 }}
-                  </div>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-          <div class="flex flex-col sm:flex-row gap-4 pt-8 border-t border-border/30">
-            <a href="{% url 'registry:trademarks:list' %}" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-border min-h-11 py-3 bg-background hover:bg-accent hover:text-accent-foreground px-6 rounded-xl text-md transition-all duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"></path>
-              </svg>
-              إلغاء
-            </a>
-            <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary min-h-11 py-3 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg px-6 rounded-xl text-md transition-all duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12l5 5l9-9"></path>
-              </svg>
-              {% if form.instance.pk %}حفظ التغييرات{% else %}إضافة العلامة{% endif %}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+  <div class="breadcrumbs">
+    <a href="{% url 'registry:dashboard' %}">لوحة التحكم</a>
+    <span>/</span>
+    <a href="{% url 'registry:trademarks:list' %}">العلامات التجارية</a>
+    <span>/</span>
+    <span>{% if form.instance.pk %}تعديل{% else %}إضافة{% endif %}</span>
   </div>
-</main>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
-    const fieldsToShow = {
-        'under_review': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.status.id_for_label }}'],
-        'accepted': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.status.id_for_label }}', '{{ form.decision_date.id_for_label }}', '{{ form.publication_date.id_for_label }}', '{{ form.publication_number.id_for_label }}', '{{ form.registration_date.id_for_label }}', '{{ form.registration_number.id_for_label }}'],
-        'rejected': ['{{ form.name.id_for_label }}', '{{ form.image.id_for_label }}', '{{ form.number.id_for_label }}', '{{ form.filing_date.id_for_label }}', '{{ form.categories.id_for_label }}', '{{ form.status.id_for_label }}', '{{ form.decision_date.id_for_label }}', '{{ form.rejection_reasons.id_for_label }}', '{{ form.appeal_date.id_for_label }}', '{{ form.appeal_hearing_date.id_for_label }}']
-    };
+  <section class="card form-panel">
+    <form method="post" enctype="multipart/form-data" data-record-form data-autosave-key="trademark-{{ form.instance.pk|default:'new' }}">
+      {% csrf_token %}
 
-    function toggleFields() {
-        const selectedStatus = statusSelect.value;
-        const visibleFields = fieldsToShow[selectedStatus] || [];
+      <div class="card draft-banner" data-role="draft-banner">
+        <div class="section-card">
+          <div class="section-title">
+            <h3>مسودة محلية</h3>
+            <div class="button-row">
+              <button class="btn btn-secondary" type="button" data-role="restore-draft">استعادة</button>
+              <button class="btn btn-danger" type="button" data-role="discard-draft">حذف المسودة</button>
+            </div>
+          </div>
+          <div class="muted" data-role="draft-status"></div>
+        </div>
+      </div>
 
-        // Hide all field containers
-        document.querySelectorAll('.space-y-2').forEach(container => {
-            const input = container.querySelector('input, select, textarea');
-            if (input) {
-                const fieldId = input.id;
-                if (visibleFields.includes(fieldId)) {
-                    container.style.display = '';
-                } else {
-                    container.style.display = 'none';
-                }
-            }
-        });
+      {% if form.non_field_errors %}
+        <div class="message message-error">
+          <span>{{ form.non_field_errors }}</span>
+        </div>
+      {% endif %}
 
-        // Also hide sections if all fields in section are hidden
-        document.querySelectorAll('.space-y-6').forEach(section => {
-            const visibleContainers = section.querySelectorAll('.space-y-2:not([style*="display: none"])');
-            if (visibleContainers.length === 0) {
-                section.style.display = 'none';
-            } else {
-                section.style.display = '';
-            }
-        });
-    }
+      <div class="required-note">
+        <span class="required-indicator" title="هذا الحقل إلزامي" aria-label="هذا الحقل إلزامي">*</span>
+        الحقول المميزة بعلامة النجمة إلزامية ويجب استكمالها قبل الحفظ.
+      </div>
 
-    statusSelect.addEventListener('change', toggleFields);
-    toggleFields(); // Initial call
-});
-</script>
+      <fieldset class="fieldset">
+        <legend>البيانات الأساسية</legend>
+        <div class="form-grid form-grid-2">
+          <div class="field-group" data-visible-for="all">
+            <label for="{{ form.name.id_for_label }}">اسم العلامة التجارية</label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="field-error">{{ form.name.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="all">
+            <label for="{{ form.number.id_for_label }}">رقم العلامة</label>
+            {{ form.number }}
+            {% if form.number.errors %}<div class="field-error">{{ form.number.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="all">
+            <label for="{{ form.filing_date.id_for_label }}">تاريخ الإيداع</label>
+            {{ form.filing_date }}
+            {% if form.filing_date.errors %}<div class="field-error">{{ form.filing_date.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="all">
+            <label for="{{ form.status.id_for_label }}">القرار</label>
+            {{ form.status }}
+            {% if form.status.errors %}<div class="field-error">{{ form.status.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="all">
+            <label for="{{ form.categories.id_for_label }}">فئات العلامة</label>
+            {{ form.categories }}
+            <div class="field-help">يمكن كتابة أكثر من فئة مفصولة بفواصل عربية أو إنجليزية.</div>
+            {% if form.categories.errors %}<div class="field-error">{{ form.categories.errors|join:"، " }}</div>{% endif %}
+          </div>
+        </div>
 
+        <div class="image-preview-wrap" style="margin-top: 1rem;">
+          <div class="image-preview" data-role="image-preview">
+            {% if form.instance.image %}
+              <img src="{{ form.instance.image.url }}" alt="{{ form.instance.name }}">
+            {% else %}
+              <span class="muted">لا توجد صورة</span>
+            {% endif %}
+          </div>
+          <div class="field-group" data-visible-for="all">
+            <label for="{{ form.image.id_for_label }}">صورة العلامة</label>
+            {{ form.image }}
+            {% if form.image.errors %}<div class="field-error">{{ form.image.errors|join:"، " }}</div>{% endif %}
+            <div class="field-help">يتم حفظ الصورة محليًا داخل مجلد الوسائط ويمكن استخدامها لاحقًا داخل تطبيق سطح المكتب.</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-visible-for="accepted,registered,rejected">
+        <legend>بيانات القرار</legend>
+        <div class="form-grid form-grid-2">
+          <div class="field-group">
+            <label for="{{ form.decision_date.id_for_label }}">تاريخ القرار</label>
+            {{ form.decision_date }}
+            {% if form.decision_date.errors %}<div class="field-error">{{ form.decision_date.errors|join:"، " }}</div>{% endif %}
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-visible-for="accepted,registered">
+        <legend>مرحلة القرار والنشر</legend>
+        <div class="form-grid form-grid-2">
+          <div class="field-group">
+            <label for="{{ form.announcement_date.id_for_label }}">تاريخ الإشهار</label>
+            {{ form.announcement_date }}
+            {% if form.announcement_date.errors %}<div class="field-error">{{ form.announcement_date.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.publication_date.id_for_label }}">تاريخ النشر عن القبول</label>
+            {{ form.publication_date }}
+            {% if form.publication_date.errors %}<div class="field-error">{{ form.publication_date.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.publication_number.id_for_label }}">عدد الجريدة</label>
+            {{ form.publication_number }}
+            {% if form.publication_number.errors %}<div class="field-error">{{ form.publication_number.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.registration_date.id_for_label }}">تاريخ التسجيل</label>
+            {{ form.registration_date }}
+            {% if form.registration_date.errors %}<div class="field-error">{{ form.registration_date.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.registration_number.id_for_label }}">رقم التسجيل</label>
+            {{ form.registration_number }}
+            {% if form.registration_number.errors %}<div class="field-error">{{ form.registration_number.errors|join:"، " }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="derived-grid" style="margin-top: 1rem;">
+          <div class="derived-box">
+            <strong>آخر يوم في النشر عن القبول</strong>
+            <input class="form-control" type="text" readonly data-derived="publication-deadline" value="{{ form.instance.publication_deadline|date:'Y-m-d'|default:'غير محسوب' }}">
+          </div>
+          <div class="derived-box">
+            <strong>تاريخ انتهاء الحماية</strong>
+            <input class="form-control" type="text" readonly data-derived="protection-expiry" value="{{ form.instance.protection_expiry|date:'Y-m-d'|default:'غير محسوب' }}">
+          </div>
+          <div class="derived-box">
+            <strong>إجمالي الرسوم</strong>
+            <input class="form-control" type="text" readonly data-derived="total-fees" value="{{ form.instance.total_fees|currency }}">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-visible-for="rejected">
+        <legend>مرحلة الرفض والتظلم</legend>
+        <div class="form-grid form-grid-2">
+          <div class="field-group">
+            <label for="{{ form.appeal_date.id_for_label }}">تاريخ التظلم</label>
+            {{ form.appeal_date }}
+            {% if form.appeal_date.errors %}<div class="field-error">{{ form.appeal_date.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.appeal_hearing_date.id_for_label }}">تاريخ جلسة التظلم</label>
+            {{ form.appeal_hearing_date }}
+            {% if form.appeal_hearing_date.errors %}<div class="field-error">{{ form.appeal_hearing_date.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" style="grid-column: 1 / -1;">
+            <label for="{{ form.rejection_reasons.id_for_label }}">أسباب الرفض</label>
+            {{ form.rejection_reasons }}
+            {% if form.rejection_reasons.errors %}<div class="field-error">{{ form.rejection_reasons.errors|join:"، " }}</div>{% endif %}
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-visible-for="under_review,accepted,registered,rejected">
+        <legend>الرسوم المالية</legend>
+        <div class="form-grid form-grid-2">
+          <div class="field-group" data-visible-for="under_review,accepted,registered">
+            <label for="{{ form.filing_fee.id_for_label }}">رسوم الإيداع</label>
+            {{ form.filing_fee }}
+            {% if form.filing_fee.errors %}<div class="field-error">{{ form.filing_fee.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="under_review,accepted,registered,rejected">
+            <label for="{{ form.examination_fee.id_for_label }}">رسوم الفحص</label>
+            {{ form.examination_fee }}
+            {% if form.examination_fee.errors %}<div class="field-error">{{ form.examination_fee.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="accepted,registered">
+            <label for="{{ form.publication_fee.id_for_label }}">رسوم النشر</label>
+            {{ form.publication_fee }}
+            {% if form.publication_fee.errors %}<div class="field-error">{{ form.publication_fee.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="accepted,registered">
+            <label for="{{ form.registration_fee.id_for_label }}">رسوم التسجيل</label>
+            {{ form.registration_fee }}
+            {% if form.registration_fee.errors %}<div class="field-error">{{ form.registration_fee.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="rejected">
+            <label for="{{ form.appeal_fee.id_for_label }}">رسوم التظلم</label>
+            {{ form.appeal_fee }}
+            {% if form.appeal_fee.errors %}<div class="field-error">{{ form.appeal_fee.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="under_review,accepted,registered,rejected">
+            <label for="{{ form.additional_fee.id_for_label }}">رسوم إضافية</label>
+            {{ form.additional_fee }}
+            {% if form.additional_fee.errors %}<div class="field-error">{{ form.additional_fee.errors|join:"، " }}</div>{% endif %}
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="form-actions">
+        <a class="btn btn-secondary" href="{% url 'registry:trademarks:list' %}">إلغاء</a>
+        <button class="btn btn-primary" type="submit">حفظ البيانات</button>
+      </div>
+    </form>
+  </section>
 {% endblock %}

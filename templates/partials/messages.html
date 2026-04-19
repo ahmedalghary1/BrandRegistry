@@ -1,0 +1,10 @@
+{% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+      <div class="message {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% else %}message-warning{% endif %}">
+        <span>{{ message }}</span>
+        <button type="button" class="message-dismiss" data-dismiss-parent>إغلاق</button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

@@ -1,0 +1,16 @@
+{
+  "name": "brandregistry-electron",
+  "version": "1.0.0",
+  "description": "نظام إدارة العلامات والنماذج الصناعية داخل Electron مع Django محلي",
+  "main": "electron/main.js",
+  "author": "Codex",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron\\start-electron.cmd",
+    "electron": "electron\\start-electron.cmd",
+    "electron:dev": "electron\\start-electron.cmd"
+  },
+  "devDependencies": {
+    "electron": "^36.3.2"
+  }
+}

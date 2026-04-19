@@ -1,0 +1,8 @@
+Django==4.2.10
+Pillow==12.1.1
+arabic-reshaper==3.0.0
+django-bootstrap5==26.2
+django-solo==2.5.1
+openpyxl==3.1.5
+python-bidi==0.6.7
+reportlab==4.4.10

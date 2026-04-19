@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load registry_extras %}
+
+{% block title %}{{ trademark.name }} | {{ app_title }}{% endblock %}
+{% block page_title %}تفاصيل العلامة التجارية{% endblock %}
+{% block page_subtitle %}عرض شامل لبيانات العلامة والرسوم والتواريخ المحسوبة{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn-secondary" href="{% url 'registry:trademarks:list' %}">العودة للقائمة</a>
+  <a class="btn btn-primary" href="{% url 'registry:trademarks:edit' trademark.pk %}">تعديل</a>
+{% endblock %}
+
+{% block content %}
+  <div class="breadcrumbs">
+    <a href="{% url 'registry:dashboard' %}">لوحة التحكم</a>
+    <span>/</span>
+    <a href="{% url 'registry:trademarks:list' %}">العلامات التجارية</a>
+    <span>/</span>
+    <span>{{ trademark.name }}</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h3 style="margin: 0 0 0.4rem;">{{ trademark.name }}</h3>
+      <div class="inline-summary">
+        <span class="summary-pill">رقم العلامة: {{ trademark.number }}</span>
+        <span class="summary-pill">الفئات: {{ trademark.categories|default:"غير محددة" }}</span>
+        <span class="summary-pill">{% include "partials/status_badge.html" with status=trademark.status status_display=trademark.get_status_display %}</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="detail-grid">
+    <div class="card section-card">
+      <div class="section-title"><h3>البيانات الأساسية</h3></div>
+      <div class="detail-list">
+        <div class="detail-item"><strong>تاريخ الإيداع</strong><span>{{ trademark.filing_date|date:"Y-m-d" }}</span></div>
+        <div class="detail-item"><strong>تاريخ القرار</strong><span>{{ trademark.decision_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ الإشهار</strong><span>{{ trademark.announcement_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ النشر عن القبول</strong><span>{{ trademark.publication_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>عدد الجريدة</strong><span>{{ trademark.publication_number|default:"—" }}</span></div>
+        <div class="detail-item"><strong>آخر يوم في النشر</strong><span>{{ trademark.publication_deadline|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ التسجيل</strong><span>{{ trademark.registration_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>رقم التسجيل</strong><span>{{ trademark.registration_number|default:"—" }}</span></div>
+        <div class="detail-item"><strong>تاريخ انتهاء الحماية</strong><span>{{ trademark.protection_expiry|date:"Y-m-d"|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="detail-cover">
+      {% if trademark.image %}
+        <img src="{{ trademark.image.url }}" alt="{{ trademark.name }}">
+      {% else %}
+        <div class="muted">لا توجد صورة مرفوعة لهذه العلامة.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="section-grid">
+    <div class="card section-card">
+      <div class="section-title"><h3>ملاحظات الرفض والتظلم</h3></div>
+      <div class="detail-list">
+        <div class="detail-item"><strong>أسباب الرفض</strong><span>{{ trademark.rejection_reasons|default:"لا توجد" }}</span></div>
+        <div class="detail-item"><strong>تاريخ التظلم</strong><span>{{ trademark.appeal_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>جلسة التظلم</strong><span>{{ trademark.appeal_hearing_date|date:"Y-m-d"|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="card section-card">
+      <div class="section-title"><h3>الرسوم</h3></div>
+      <div class="detail-list">
+        <div class="detail-item"><strong>رسوم الإيداع</strong><span>{{ trademark.filing_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم الفحص</strong><span>{{ trademark.examination_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم النشر</strong><span>{{ trademark.publication_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم التسجيل</strong><span>{{ trademark.registration_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم التظلم</strong><span>{{ trademark.appeal_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم إضافية</strong><span>{{ trademark.additional_fee|currency }}</span></div>
+        <div class="detail-item"><strong>الإجمالي</strong><span>{{ trademark.total_fees|currency }}</span></div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

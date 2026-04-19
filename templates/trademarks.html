@@ -1,165 +1,156 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}العلامات التجارية{% endblock %}
+{% extends "base.html" %}
+{% load registry_extras %}
+
+{% block title %}العلامات التجارية | {{ app_title }}{% endblock %}
+{% block page_title %}إدارة العلامات التجارية{% endblock %}
+{% block page_subtitle %}قائمة احترافية للبحث والفلترة والمتابعة الكاملة للعلامات التجارية{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn-primary" href="{% url 'registry:trademarks:add' %}">إضافة علامة جديدة</a>
+{% endblock %}
 
 {% block content %}
-<main class="flex-1 flex flex-col min-w-0 bg-secondary/30 h-screen overflow-y-auto lg:pt-0 pt-16">
-  <div class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
-    <div style="opacity: 1; transform: none;">
-      <div class="space-y-6">
-        <!-- Breadcrumbs -->
-        <nav class="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground">
-          <a href="{% url 'registry:dashboard' %}" class="hover:text-foreground transition-colors">لوحة التحكم</a>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"></path></svg>
-          <span class="text-foreground font-medium">العلامات التجارية</span>
-        </nav>
+  <div class="breadcrumbs">
+    <a href="{% url 'registry:dashboard' %}">لوحة التحكم</a>
+    <span>/</span>
+    <span>العلامات التجارية</span>
+  </div>
 
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 class="text-3xl font-bold font-display text-foreground">العلامات التجارية</h1>
-            <p class="text-muted-foreground mt-1">إدارة ومتابعة جميع العلامات التجارية المسجلة وقيد الفحص</p>
-          </div>
-          <a href="{% url 'registry:trademarks:add' %}" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-primary-border min-h-9 py-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg px-6 h-12 rounded-xl text-md">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-5 h-5 me-2" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
-            إضافة علامة جديدة
-          </a>
-        </div>
-        <div class="shadcn-card rounded-xl border border-card-border text-card-foreground border-none shadow-md bg-card/50 backdrop-blur-sm">
-          <div class="p-4 flex flex-col md:flex-row gap-4">
-            <form method="get" class="relative flex-1 flex gap-2">
-              <div class="relative flex-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
-                <input type="text" name="q" value="{{ request.GET.q }}" class="flex w-full border px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ps-10 h-12 rounded-xl bg-background border-border shadow-inner" placeholder="ابحث برقم أو اسم العلامة...">
-              </div>
-              <button type="submit" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors h-12">
-                بحث
-              </button>
-            </form>
-            <form method="get" class="flex-none">
-              {% if request.GET.q %}
-              <input type="hidden" name="q" value="{{ request.GET.q }}">
-              {% endif %}
-              <select name="status" onchange="this.form.submit()" class="flex items-center justify-between border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full md:w-64 h-12 rounded-xl">
-                <option value="">الكل</option>
-                <option value="under_review" {% if request.GET.status == 'under_review' %}selected{% endif %}>قيد الفحص</option>
-                <option value="accepted" {% if request.GET.status == 'accepted' %}selected{% endif %}>مقبول</option>
-                <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>مرفوض</option>
-              </select>
-            </form>
-          </div>
-        </div>
-        {% if trademarks %}
-        <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-start">
-              <thead class="bg-primary/5 text-primary">
-                <tr>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">العلامة</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الرقم</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الإيداع</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الفئات</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">الحالة</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ القرار</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ الإشهار</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ النشر عن القبول</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">عدد الجريدة</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">آخر يوم في النشر</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ التسجيل</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">رقم التسجيل</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ انتهاء الحماية</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">أسباب الرفض</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ التظلم</th>
-                  <th class="py-4 px-6 font-semibold text-start whitespace-nowrap">تاريخ جلسة التظلم</th>
-                  <th class="py-4 px-6 font-semibold text-end whitespace-nowrap">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-border">
-                {% for trademark in trademarks %}
-                <tr class="hover:bg-muted/30 transition-colors">
-                  <td class="py-4 px-6">
-                    <div class="flex items-center space-x-3 space-x-reverse">
-                      {% if trademark.logo %}
-                      <img alt="{{ trademark.name }}" class="w-10 h-10 rounded-lg object-cover border border-border shadow-sm" src="{{ trademark.logo.url }}">
-                      {% else %}
-                      <div class="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                        <svg class="w-6 h-6 text-muted-foreground" fill="currentColor" stroke="none" viewBox="0 0 24 24">
-                          <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                      </div>
-                      {% endif %}
-                      <span class="font-bold text-foreground">{{ trademark.name }}</span>
-                    </div>
-                  </td>
-                  <td class="py-4 px-6 font-mono text-sm">{{ trademark.number }}</td>
-                  <td class="py-4 px-6">{{ trademark.filing_date|date:"d/m/Y" }}</td>
-                  <td class="py-4 px-6">
-                    <span class="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs font-semibold">{{ trademark.categories }}</span>
-                  </td>
-                  <td class="py-4 px-6">
-                    {% if trademark.status == 'accepted' %}
-                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-success/15 text-success-foreground border-success/30">مقبول</span>
-                    {% elif trademark.status == 'under_review' %}
-                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-warning/15 text-warning-foreground border-warning/30">قيد الفحص</span>
-                    {% elif trademark.status == 'rejected' %}
-                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold border bg-destructive/15 text-destructive-foreground border-destructive/30">مرفوض</span>
-                    {% endif %}
-                  </td>
-                  <td class="py-4 px-6">{{ trademark.decision_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_number|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.publication_expiry|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.registration_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.registration_number|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.protection_expiry|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.rejection_reasons|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.appeal_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6">{{ trademark.appeal_hearing_date|date:"d/m/Y"|default:"غير متوفر" }}</td>
-                  <td class="py-4 px-6 text-end">
-                    <div class="flex items-center justify-end space-x-2 space-x-reverse">
-                      <a href="{% url 'registry:trademarks:edit' trademark.pk %}" title="عرض وتعديل" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent h-9 w-9 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-4 h-4" aria-hidden="true"><path d="M2.5 5A2.5 2.5 0 0 1 5 2.5h14A2.5 2.5 0 0 1 21.5 5v14a2.5 2.5 0 0 1-2.5 2.5H5A2.5 2.5 0 0 1 2.5 19V5Z"></path><path d="M21 15.5V8.5"></path><path d="M2.5 15.5V8.5"></path><path d="M7 2.5V19"></path><path d="M17 2.5V19"></path></svg>
-                      </a>
-                      <a href="{% url 'registry:trademarks:edit' trademark.pk %}" title="تعديل" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent h-9 w-9 bg-primary/20 text-primary hover:bg-primary/30 dark:bg-primary/30 dark:text-primary dark:hover:bg-primary/40">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path></svg>
-                      </a>
-                      <a href="{% url 'registry:trademarks:delete' trademark.pk %}" title="حذف" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent h-9 w-9 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 lucide-trash-2 w-4 h-4" aria-hidden="true"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        {% if is_paginated %}
-        <div class="flex justify-center mt-6">
-          <nav class="flex items-center space-x-1 space-x-reverse">
-            {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">السابق</a>
-            {% endif %}
-            <span class="px-3 py-2">{{ page_obj.number }} من {{ paginator.num_pages }}</span>
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">التالي</a>
-            {% endif %}
-          </nav>
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="shadcn-card rounded-xl border bg-card border-card-border text-card-foreground border-none shadow-lg p-12 text-center">
-          <div class="space-y-4">
-            <svg class="w-16 h-16 text-muted-foreground mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <h3 class="text-xl font-semibold text-foreground">لا توجد علامات تجارية مسجلة</h3>
-            <p class="text-muted-foreground">ابدأ بإضافة علامتك التجارية الأولى لإدارة طلباتك بكفاءة.</p>
-          </div>
-        </div>
-        {% endif %}
+  <div class="card-grid">
+    <article class="card stat-card"><small>تحت الفحص</small><strong class="warning">{{ status_counts.under_review }}</strong></article>
+    <article class="card stat-card"><small>قبول</small><strong class="accent">{{ status_counts.accepted }}</strong></article>
+    <article class="card stat-card"><small>رفض</small><strong class="danger">{{ status_counts.rejected }}</strong></article>
+    <article class="card stat-card"><small>تسجيل</small><strong class="success">{{ status_counts.registered }}</strong></article>
+  </div>
+
+  <section class="card filter-panel" style="margin-top: 1rem;">
+    <div class="section-title">
+      <h3>البحث والفلترة</h3>
+      <div class="button-row">
+        <a class="btn btn-secondary" href="{% url 'registry:reports' %}?record_type=trademark">التقارير</a>
+        <a class="btn btn-secondary" href="{% url 'registry:trademarks:list' %}">إعادة الضبط</a>
       </div>
     </div>
-  </div>
-</main>
+    <form method="get">
+      <div class="filter-grid">
+        <div class="field-group">
+          <label for="{{ filter_form.search_name.id_for_label }}">اسم العلامة</label>
+          {{ filter_form.search_name }}
+        </div>
+        <div class="field-group">
+          <label for="{{ filter_form.search_number.id_for_label }}">رقم العلامة</label>
+          {{ filter_form.search_number }}
+        </div>
+        <div class="field-group">
+          <label for="{{ filter_form.status.id_for_label }}">القرار</label>
+          {{ filter_form.status }}
+        </div>
+        <div class="field-group">
+          <label for="{{ filter_form.filing_date_from.id_for_label }}">من تاريخ الإيداع</label>
+          {{ filter_form.filing_date_from }}
+        </div>
+        <div class="field-group">
+          <label for="{{ filter_form.filing_date_to.id_for_label }}">إلى تاريخ الإيداع</label>
+          {{ filter_form.filing_date_to }}
+        </div>
+        <div class="field-group">
+          <label for="{{ filter_form.fees_min.id_for_label }}">أقل رسوم</label>
+          {{ filter_form.fees_min }}
+        </div>
+        <div class="field-group">
+          <label for="{{ filter_form.fees_max.id_for_label }}">أعلى رسوم</label>
+          {{ filter_form.fees_max }}
+        </div>
+        <div class="field-group">
+          <label>&nbsp;</label>
+          <label class="form-check">{{ filter_form.expiring_only }}<span>قرب انتهاء الحماية</span></label>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top: 1rem;">
+        <button class="btn btn-primary" type="submit">تطبيق الفلاتر</button>
+      </div>
+    </form>
+  </section>
+
+  {% if active_filters %}
+    <div class="chip-row" style="margin: 1rem 0;">
+      {% for key, value in active_filters.items %}
+        <span class="chip">{{ key }}: {{ value }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <section class="card section-card">
+    <div class="toolbar">
+      <div>
+        <h3 style="margin: 0;">سجل العلامات</h3>
+        <div class="muted small">عدد النتائج: {{ page_obj.paginator.count }}</div>
+      </div>
+      <div class="button-row">
+        <a class="btn btn-secondary" href="{% url 'registry:reports' %}?record_type=trademark{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">تصدير النتائج</a>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>العلامة</th>
+            <th>رقم العلامة</th>
+            <th>تاريخ الإيداع</th>
+            <th>الفئات</th>
+            <th>القرار</th>
+            <th>آخر يوم بالنشر</th>
+            <th>انتهاء الحماية</th>
+            <th>إجمالي الرسوم</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for trademark in trademarks %}
+            <tr>
+              <td>
+                <div class="record-inline">
+                  {% if trademark.image %}
+                    <img class="record-media" src="{{ trademark.image.url }}" alt="{{ trademark.name }}">
+                  {% else %}
+                    <div class="record-media"></div>
+                  {% endif %}
+                  <div class="record-inline-text">
+                    <strong>{{ trademark.name }}</strong>
+                    <span class="muted small">{{ trademark.registration_number|default:"لا يوجد رقم تسجيل" }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>{{ trademark.number }}</td>
+              <td>{{ trademark.filing_date|date:"Y-m-d" }}</td>
+              <td>{{ trademark.categories|default:"—" }}</td>
+              <td>{% include "partials/status_badge.html" with status=trademark.status status_display=trademark.get_status_display %}</td>
+              <td>{{ trademark.publication_deadline|date:"Y-m-d"|default:"—" }}</td>
+              <td>
+                {{ trademark.protection_expiry|date:"Y-m-d"|default:"—" }}
+                {% if trademark.is_approaching_protection_expiry %}
+                  <div class="small danger-text">{{ trademark.days_until_expiry }} يوم متبقٍ</div>
+                {% endif %}
+              </td>
+              <td>{{ trademark.total_fees|currency }}</td>
+              <td>
+                <div class="button-row">
+                  <a class="btn btn-secondary icon-btn" href="{% url 'registry:trademarks:detail' trademark.pk %}">عرض</a>
+                  <a class="btn btn-secondary icon-btn" href="{% url 'registry:trademarks:edit' trademark.pk %}">تعديل</a>
+                  <a class="btn btn-danger icon-btn" href="{% url 'registry:trademarks:delete' trademark.pk %}">حذف</a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="empty-state">لا توجد علامات مطابقة لمدخلات البحث الحالية.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% include "partials/pagination.html" %}
+  </section>
 {% endblock %}

@@ -7,6 +7,7 @@ app_name = 'designs'
 urlpatterns = [
     path('', views.DesignListView.as_view(), name='list'),
     path('add/', views.DesignCreateView.as_view(), name='add'),
+    path('<int:pk>/', views.DesignDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.DesignUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.DesignDeleteView.as_view(), name='delete'),
 ]
