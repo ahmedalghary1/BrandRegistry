@@ -1,4 +1,3 @@
-from datetime import timedelta
 from decimal import Decimal
 from io import BytesIO
 from itertools import chain
@@ -8,7 +7,6 @@ from django.contrib import messages
 from django.db.models import Count
 from django.http import HttpResponse
 from django.urls import reverse_lazy
-from django.utils import timezone
 from django.views import generic
 from openpyxl.styles import Alignment, Font, PatternFill
 from reportlab.lib import colors
@@ -22,7 +20,7 @@ from .forms import (
     SiteSettingsForm,
     TrademarkForm,
 )
-from .models import IndustrialDesign, SiteSettings, Trademark, add_years
+from .models import IndustrialDesign, SiteSettings, Trademark
 from .utils import register_arabic_font, shape_arabic, with_total_fees
 
 
@@ -49,11 +47,8 @@ def apply_record_filters(queryset, cleaned_data):
     if filing_date_to:
         queryset = queryset.filter(filing_date__lte=filing_date_to)
     if expiring_only:
-        today = timezone.localdate()
-        cutoff = today + timedelta(days=30)
-        queryset = queryset.filter(
-            filing_date__range=(add_years(today, -10), add_years(cutoff, -10))
-        )
+        matching_ids = [item.pk for item in queryset if item.is_approaching_protection_expiry]
+        queryset = queryset.filter(pk__in=matching_ids)
     if fees_min is not None:
         queryset = queryset.filter(total_fees_db__gte=fees_min)
     if fees_max is not None:
@@ -68,6 +63,26 @@ def build_status_counts(model):
     return counts
 
 
+def collect_protection_groups(records):
+    expiring = []
+    expired = []
+    renewal_due = []
+
+    for item in records:
+        if item.needs_renewal:
+            renewal_due.append(item)
+        if item.is_expired:
+            expired.append(item)
+        elif item.is_approaching_protection_expiry:
+            expiring.append(item)
+
+    return {
+        "expiring": expiring,
+        "expired": expired,
+        "renewal_due": renewal_due,
+    }
+
+
 class DashboardView(generic.TemplateView):
     template_name = "dashboard.html"
 
@@ -76,11 +91,58 @@ class DashboardView(generic.TemplateView):
 
         trademark_counts = build_status_counts(Trademark)
         design_counts = build_status_counts(IndustrialDesign)
-        trademark_records = list(Trademark.objects.all()[:6])
-        design_records = list(IndustrialDesign.objects.all()[:6])
+        all_trademarks = list(Trademark.objects.all())
+        all_designs = list(IndustrialDesign.objects.all())
+        trademark_records = all_trademarks[:6]
+        design_records = all_designs[:6]
+        trademark_groups = collect_protection_groups(all_trademarks)
+        design_groups = collect_protection_groups(all_designs)
 
-        expiring_trademarks = [item for item in Trademark.objects.all() if item.is_approaching_protection_expiry]
-        expiring_designs = [item for item in IndustrialDesign.objects.all() if item.is_approaching_protection_expiry]
+        dashboard_notifications = [
+            {
+                "title": "علامات بحاجة إلى تجديد",
+                "count": len(trademark_groups["renewal_due"]),
+                "tone": "danger",
+                "description": "انتهت مدة الحماية وتحتاج إلى تسجيل التجديد.",
+            },
+            {
+                "title": "نماذج بحاجة إلى تجديد",
+                "count": len(design_groups["renewal_due"]),
+                "tone": "danger",
+                "description": "انتهت مدة الحماية وتحتاج إلى تسجيل التجديد.",
+            },
+            {
+                "title": "علامات منتهية الحماية",
+                "count": len(trademark_groups["expired"]),
+                "tone": "danger",
+                "description": "سجلات انتهت مدة الحماية الخاصة بها بالفعل.",
+            },
+            {
+                "title": "نماذج منتهية الحماية",
+                "count": len(design_groups["expired"]),
+                "tone": "danger",
+                "description": "سجلات انتهت مدة الحماية الخاصة بها بالفعل.",
+            },
+            {
+                "title": "علامات على وشك الانتهاء",
+                "count": len(trademark_groups["expiring"]),
+                "tone": "warning",
+                "description": "سجلات اقترب انتهاء حمايتها خلال 30 يومًا.",
+            },
+            {
+                "title": "نماذج على وشك الانتهاء",
+                "count": len(design_groups["expiring"]),
+                "tone": "warning",
+                "description": "سجلات اقترب انتهاء حمايتها خلال 30 يومًا.",
+            },
+        ]
+        current_alert_keys = {
+            ("trademark", item.pk)
+            for item in trademark_groups["expiring"] + trademark_groups["expired"]
+        } | {
+            ("design", item.pk)
+            for item in design_groups["expiring"] + design_groups["expired"]
+        }
 
         recent_records = sorted(
             chain(
@@ -97,9 +159,15 @@ class DashboardView(generic.TemplateView):
                 "design_counts": design_counts,
                 "total_trademarks": Trademark.objects.count(),
                 "total_designs": IndustrialDesign.objects.count(),
-                "expiring_trademarks": expiring_trademarks,
-                "expiring_designs": expiring_designs,
-                "current_alerts": len(expiring_trademarks) + len(expiring_designs),
+                "total_registered_designs": design_counts[IndustrialDesign.STATUS_REGISTERED],
+                "expiring_trademarks": trademark_groups["expiring"],
+                "expired_trademarks": trademark_groups["expired"],
+                "renewal_due_trademarks": trademark_groups["renewal_due"],
+                "expiring_designs": design_groups["expiring"],
+                "expired_designs": design_groups["expired"],
+                "renewal_due_designs": design_groups["renewal_due"],
+                "current_alerts": len(current_alert_keys),
+                "dashboard_notifications": dashboard_notifications,
                 "recent_records": recent_records,
                 "total_fees_trademarks": sum(
                     (item.total_fees for item in Trademark.objects.all()),
@@ -107,6 +175,14 @@ class DashboardView(generic.TemplateView):
                 ),
                 "total_fees_designs": sum(
                     (item.total_fees for item in IndustrialDesign.objects.all()),
+                    Decimal("0.00"),
+                ),
+                "total_renewal_fees_trademarks": sum(
+                    (item.renewal_fee for item in Trademark.objects.all()),
+                    Decimal("0.00"),
+                ),
+                "total_renewal_fees_designs": sum(
+                    (item.renewal_fee for item in IndustrialDesign.objects.all()),
                     Decimal("0.00"),
                 ),
             }
@@ -261,6 +337,8 @@ class ReportsView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        trademark_groups = collect_protection_groups(list(Trademark.objects.all()))
+        design_groups = collect_protection_groups(list(IndustrialDesign.objects.all()))
         context.update(
             {
                 "record_type": self.record_type,
@@ -270,8 +348,10 @@ class ReportsView(generic.TemplateView):
                 "records_count": self.queryset.count(),
                 "trademark_counts": build_status_counts(Trademark),
                 "design_counts": build_status_counts(IndustrialDesign),
-                "expiring_trademarks": [item for item in Trademark.objects.all() if item.is_approaching_protection_expiry],
-                "expiring_designs": [item for item in IndustrialDesign.objects.all() if item.is_approaching_protection_expiry],
+                "expiring_trademarks": trademark_groups["expiring"],
+                "expired_trademarks": trademark_groups["expired"],
+                "expiring_designs": design_groups["expiring"],
+                "expired_designs": design_groups["expired"],
             }
         )
         return context
@@ -289,6 +369,11 @@ class ReportsView(generic.TemplateView):
                     record.decision_date.strftime("%Y-%m-%d") if record.decision_date else "",
                     record.publication_deadline.strftime("%Y-%m-%d") if record.publication_deadline else "",
                     record.protection_expiry.strftime("%Y-%m-%d") if record.protection_expiry else "",
+                    record.protection_status_label,
+                    str(record.renewal_count),
+                    record.last_renewal_date.strftime("%Y-%m-%d") if record.last_renewal_date else "",
+                    record.renewal_status,
+                    f"{record.renewal_fee:.2f}",
                     f"{record.total_fees:.2f}",
                 ]
             )
@@ -301,6 +386,11 @@ class ReportsView(generic.TemplateView):
             "تاريخ القرار",
             "آخر يوم في النشر",
             "انتهاء الحماية",
+            "حالة الحماية",
+            "عدد التجديدات",
+            "تاريخ آخر تجديد",
+            "حالة التجديد",
+            "رسوم التجديد",
             "إجمالي الرسوم",
         ]
 

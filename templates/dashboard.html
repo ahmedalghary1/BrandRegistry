@@ -13,10 +13,7 @@
 {% block content %}
   <section class="page-hero">
     <h3>نظام إدارة العلامات والنماذج الصناعية</h3>
-    <p>
-      لوحة تحكم عربية RTL لتسجيل الطلبات ومتابعة مراحل الفحص والقبول والرفض والتسجيل،
-      مع تنبيهات قرب انتهاء الحماية وتلخيص الرسوم وتصدير التقارير.
-    </p>
+
     <div class="hero-actions">
       <a class="btn btn-light" href="{% url 'registry:reports' %}">فتح مركز التقارير</a>
       <a class="btn btn-light" href="{% url 'registry:settings' %}">إعدادات النظام</a>
@@ -41,8 +38,8 @@
       <strong class="danger">{{ trademark_counts.rejected }}</strong>
     </article>
     <article class="card stat-card">
-      <small>إجمالي النماذج الصناعية</small>
-      <strong>{{ total_designs }}</strong>
+      <small>النماذج الصناعية المسجلة</small>
+      <strong class="success">{{ total_registered_designs }}</strong>
     </article>
     <article class="card stat-card">
       <small>النماذج المقبولة</small>
@@ -58,10 +55,26 @@
     </article>
   </section>
 
+  <section class="card section-card" style="margin-top: 1rem;">
+    <div class="section-title">
+      <h3>مركز التنبيهات</h3>
+      <span class="muted">مُحدّث تلقائيًا من تواريخ الإيداع والحماية</span>
+    </div>
+    <div class="card-grid">
+      {% for item in dashboard_notifications %}
+        <article class="card stat-card">
+          <small>{{ item.title }}</small>
+          <strong class="{% if item.tone == 'danger' %}danger{% else %}warning{% endif %}">{{ item.count }}</strong>
+          <div class="small muted">{{ item.description }}</div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
   <section class="section-grid">
     <div class="card section-card">
       <div class="section-title">
-        <h3>العناصر التي قاربت على انتهاء الحماية</h3>
+        <h3>العلامات التجارية على وشك انتهاء الحماية</h3>
         <span class="muted">خلال 30 يومًا</span>
       </div>
       <div class="list-stack">
@@ -77,6 +90,18 @@
             </div>
           </div>
         {% endfor %}
+        {% if not expiring_trademarks %}
+          <div class="empty-state">لا توجد علامات تجارية قاربت على انتهاء الحماية حاليًا.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card section-card">
+      <div class="section-title">
+        <h3>النماذج الصناعية على وشك انتهاء الحماية</h3>
+        <span class="muted">خلال 30 يومًا</span>
+      </div>
+      <div class="list-stack">
         {% for item in expiring_designs %}
           <div class="list-item">
             <div class="list-item-meta">
@@ -89,32 +114,59 @@
             </div>
           </div>
         {% endfor %}
-        {% if not expiring_trademarks and not expiring_designs %}
-          <div class="empty-state">لا توجد عناصر يقترب انتهاء حمايتها حاليًا.</div>
+        {% if not expiring_designs %}
+          <div class="empty-state">لا توجد نماذج صناعية قاربت على انتهاء الحماية حاليًا.</div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-grid">
+    <div class="card section-card">
+      <div class="section-title">
+        <h3>العلامات التجارية المنتهية</h3>
+        <span class="muted">تحتاج إلى تجديد</span>
+      </div>
+      <div class="list-stack">
+        {% for item in expired_trademarks %}
+          <div class="list-item">
+            <div class="list-item-meta">
+              <strong>{{ item.name }}</strong>
+              <span class="muted">علامة تجارية | {{ item.protection_status_label }}</span>
+            </div>
+            <div class="list-item-meta" style="text-align: left;">
+              <strong class="danger-text">{{ item.protection_expiry|date:"Y-m-d" }}</strong>
+              <span class="muted">{{ item.protection_alert_message }}</span>
+            </div>
+          </div>
+        {% endfor %}
+        {% if not expired_trademarks %}
+          <div class="empty-state">لا توجد علامات تجارية منتهية الحماية حاليًا.</div>
         {% endif %}
       </div>
     </div>
 
     <div class="card section-card">
       <div class="section-title">
-        <h3>ملخص الرسوم</h3>
-        <span class="muted">جميع السجلات</span>
+        <h3>النماذج الصناعية المنتهية</h3>
+        <span class="muted">تحتاج إلى تجديد</span>
       </div>
       <div class="list-stack">
-        <div class="list-item">
-          <div class="list-item-meta">
-            <strong>إجمالي رسوم العلامات</strong>
-            <span class="muted">يشمل الإيداع والفحص والنشر والتسجيل والتظلم والإضافية</span>
+        {% for item in expired_designs %}
+          <div class="list-item">
+            <div class="list-item-meta">
+              <strong>{{ item.name }}</strong>
+              <span class="muted">نموذج صناعي | {{ item.protection_status_label }}</span>
+            </div>
+            <div class="list-item-meta" style="text-align: left;">
+              <strong class="danger-text">{{ item.protection_expiry|date:"Y-m-d" }}</strong>
+              <span class="muted">{{ item.protection_alert_message }}</span>
+            </div>
           </div>
-          <strong>{{ total_fees_trademarks|currency }}</strong>
-        </div>
-        <div class="list-item">
-          <div class="list-item-meta">
-            <strong>إجمالي رسوم النماذج</strong>
-            <span class="muted">مجموع كل الرسوم المسجلة للنماذج الصناعية</span>
-          </div>
-          <strong>{{ total_fees_designs|currency }}</strong>
-        </div>
+        {% endfor %}
+        {% if not expired_designs %}
+          <div class="empty-state">لا توجد نماذج صناعية منتهية الحماية حاليًا.</div>
+        {% endif %}
       </div>
     </div>
   </section>
@@ -165,13 +217,13 @@
 
     <div class="card section-card">
       <div class="section-title">
-        <h3>توزيع النماذج الصناعية</h3>
+        <h3>ملخص الرسوم</h3>
       </div>
       <div class="list-stack">
-        <div class="list-item"><span>المسجلة</span><strong>{{ design_counts.registered }}</strong></div>
-        <div class="list-item"><span>المقبولة</span><strong>{{ design_counts.accepted }}</strong></div>
-        <div class="list-item"><span>تحت الفحص</span><strong>{{ design_counts.under_review }}</strong></div>
-        <div class="list-item"><span>المرفوضة</span><strong>{{ design_counts.rejected }}</strong></div>
+        <div class="list-item"><span>إجمالي رسوم العلامات</span><strong>{{ total_fees_trademarks|currency }}</strong></div>
+        <div class="list-item"><span>إجمالي رسوم النماذج</span><strong>{{ total_fees_designs|currency }}</strong></div>
+        <div class="list-item"><span>إجمالي رسوم تجديد العلامات</span><strong>{{ total_renewal_fees_trademarks|currency }}</strong></div>
+        <div class="list-item"><span>إجمالي رسوم تجديد النماذج</span><strong>{{ total_renewal_fees_designs|currency }}</strong></div>
       </div>
     </div>
   </section>

@@ -13,11 +13,21 @@ class TrademarkAdmin(admin.ModelAdmin):
         "filing_date",
         "publication_deadline",
         "protection_expiry",
+        "protection_status_label",
+        "renewal_fee",
         "total_fees",
     )
     list_filter = ("status", "filing_date", "decision_date")
     search_fields = ("name", "number", "categories", "registration_number")
-    readonly_fields = ("created_at", "updated_at", "publication_deadline", "protection_expiry", "total_fees")
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "publication_deadline",
+        "protection_expiry",
+        "protection_status_label",
+        "renewal_status",
+        "total_fees",
+    )
     fieldsets = (
         ("البيانات الأساسية", {"fields": ("name", "image", "number", "categories", "status", "filing_date")}),
         (
@@ -39,6 +49,10 @@ class TrademarkAdmin(admin.ModelAdmin):
                     "registration_date",
                     "registration_number",
                     "protection_expiry",
+                    "protection_status_label",
+                    "renewal_count",
+                    "last_renewal_date",
+                    "renewal_status",
                     "rejection_reasons",
                     "appeal_date",
                     "appeal_hearing_date",
@@ -53,6 +67,7 @@ class TrademarkAdmin(admin.ModelAdmin):
                     "examination_fee",
                     "publication_fee",
                     "registration_fee",
+                    "renewal_fee",
                     "appeal_fee",
                     "additional_fee",
                     "total_fees",
@@ -72,11 +87,21 @@ class IndustrialDesignAdmin(admin.ModelAdmin):
         "filing_date",
         "publication_deadline",
         "protection_expiry",
+        "protection_status_label",
+        "renewal_fee",
         "total_fees",
     )
     list_filter = ("status", "filing_date", "decision_date")
     search_fields = ("name", "number", "description", "registration_number")
-    readonly_fields = ("created_at", "updated_at", "publication_deadline", "protection_expiry", "total_fees")
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "publication_deadline",
+        "protection_expiry",
+        "protection_status_label",
+        "renewal_status",
+        "total_fees",
+    )
     fieldsets = (
         ("البيانات الأساسية", {"fields": ("name", "description", "image", "number", "status", "filing_date")}),
         (
@@ -98,6 +123,10 @@ class IndustrialDesignAdmin(admin.ModelAdmin):
                     "registration_date",
                     "registration_number",
                     "protection_expiry",
+                    "protection_status_label",
+                    "renewal_count",
+                    "last_renewal_date",
+                    "renewal_status",
                     "rejection_reasons",
                     "appeal_date",
                     "appeal_hearing_date",
@@ -112,6 +141,7 @@ class IndustrialDesignAdmin(admin.ModelAdmin):
                     "examination_fee",
                     "publication_fee",
                     "registration_fee",
+                    "renewal_fee",
                     "appeal_fee",
                     "additional_fee",
                     "total_fees",

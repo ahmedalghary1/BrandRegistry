@@ -25,7 +25,9 @@
       <div class="inline-summary">
         <span class="summary-pill">رقم النموذج: {{ design.number }}</span>
         <span class="summary-pill">{% include "partials/status_badge.html" with status=design.status status_display=design.get_status_display %}</span>
+        <span class="{{ design.protection_status_code|protection_badge_class }}">{{ design.protection_status_label }}</span>
       </div>
+      <p class="muted">{{ design.protection_alert_message }}</p>
       {% if design.description %}
         <p class="muted">{{ design.description }}</p>
       {% endif %}
@@ -44,7 +46,13 @@
         <div class="detail-item"><strong>آخر يوم في النشر</strong><span>{{ design.publication_deadline|date:"Y-m-d"|default:"—" }}</span></div>
         <div class="detail-item"><strong>تاريخ التسجيل</strong><span>{{ design.registration_date|date:"Y-m-d"|default:"—" }}</span></div>
         <div class="detail-item"><strong>رقم التسجيل</strong><span>{{ design.registration_number|default:"—" }}</span></div>
+        <div class="detail-item"><strong>أساس حساب الحماية</strong><span>من تاريخ الإيداع</span></div>
         <div class="detail-item"><strong>تاريخ انتهاء الحماية</strong><span>{{ design.protection_expiry|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>عدد مرات التجديد</strong><span>{{ design.renewal_count }}</span></div>
+        <div class="detail-item"><strong>تاريخ آخر تجديد</strong><span>{{ design.last_renewal_date|date:"Y-m-d"|default:"—" }}</span></div>
+        <div class="detail-item"><strong>حالة الحماية</strong><span>{{ design.protection_status_label }}</span></div>
+        <div class="detail-item"><strong>حالة التجديد</strong><span>{{ design.renewal_status }}</span></div>
+        <div class="detail-item"><strong>التجديد بعد الانتهاء</strong><span>{% if design.can_renew_after_expiry %}متاح{% else %}بعد التسجيل{% endif %}</span></div>
       </div>
     </div>
 
@@ -74,6 +82,7 @@
         <div class="detail-item"><strong>رسوم الفحص</strong><span>{{ design.examination_fee|currency }}</span></div>
         <div class="detail-item"><strong>رسوم النشر</strong><span>{{ design.publication_fee|currency }}</span></div>
         <div class="detail-item"><strong>رسوم التسجيل</strong><span>{{ design.registration_fee|currency }}</span></div>
+        <div class="detail-item"><strong>رسوم التجديد</strong><span>{{ design.renewal_fee|currency }}</span></div>
         <div class="detail-item"><strong>رسوم التظلم</strong><span>{{ design.appeal_fee|currency }}</span></div>
         <div class="detail-item"><strong>رسوم إضافية</strong><span>{{ design.additional_fee|currency }}</span></div>
         <div class="detail-item"><strong>الإجمالي</strong><span>{{ design.total_fees|currency }}</span></div>

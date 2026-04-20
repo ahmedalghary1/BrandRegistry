@@ -22,6 +22,7 @@ class BaseIPModel(models.Model):
     STATUS_ACCEPTED = "accepted"
     STATUS_REJECTED = "rejected"
     STATUS_REGISTERED = "registered"
+    PROTECTION_YEARS = 10
 
     STATUS_CHOICES = [
         (STATUS_UNDER_REVIEW, "تحت الفحص"),
@@ -64,6 +65,11 @@ class BaseIPModel(models.Model):
     registration_fee = models.DecimalField(
         "رسوم التسجيل", max_digits=12, decimal_places=2, default=Decimal("0.00")
     )
+    renewal_count = models.PositiveIntegerField("عدد مرات التجديد", default=0)
+    last_renewal_date = models.DateField("تاريخ آخر تجديد", null=True, blank=True)
+    renewal_fee = models.DecimalField(
+        "رسوم التجديد", max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
     appeal_fee = models.DecimalField(
         "رسوم التظلم", max_digits=12, decimal_places=2, default=Decimal("0.00")
     )
@@ -89,8 +95,96 @@ class BaseIPModel(models.Model):
         return self.publication_deadline
 
     @property
+    def protection_start_date(self):
+        return self.filing_date
+
+    @property
+    def effective_renewal_count(self):
+        return max(self.renewal_count or 0, 0)
+
+    @property
+    def total_protection_years(self):
+        return self.PROTECTION_YEARS * (1 + self.effective_renewal_count)
+
+    @property
+    def base_protection_expiry(self):
+        return add_years(self.protection_start_date, self.PROTECTION_YEARS)
+
+    @property
     def protection_expiry(self):
-        return add_years(self.filing_date, 10)
+        return add_years(self.protection_start_date, self.total_protection_years)
+
+    @property
+    def renewal_available(self):
+        return self.status == self.STATUS_REGISTERED and bool(self.protection_expiry)
+
+    @property
+    def can_renew_after_expiry(self):
+        return self.renewal_available
+
+    @property
+    def has_been_renewed(self):
+        return self.effective_renewal_count > 0
+
+    @property
+    def is_expired(self):
+        days = self.days_until_expiry
+        return days is not None and days < 0
+
+    @property
+    def renewal_status(self):
+        if not self.protection_expiry:
+            return "غير محسوب"
+        if self.status != self.STATUS_REGISTERED:
+            return "يتاح التجديد بعد التسجيل"
+        if self.is_expired:
+            return "انتهت الحماية ويحتاج إلى تجديد"
+        if self.has_been_renewed:
+            return "تم التجديد"
+        return "يمكن التجديد بعد انتهاء الحماية"
+
+    @property
+    def protection_status_code(self):
+        if not self.protection_expiry:
+            return "unavailable"
+        if self.is_expired:
+            return "expired"
+        if self.is_approaching_protection_expiry:
+            return "expiring"
+        if self.has_been_renewed:
+            return "renewed"
+        return "active"
+
+    @property
+    def protection_status_label(self):
+        labels = {
+            "unavailable": "غير محسوب",
+            "active": "ساري",
+            "expiring": "على وشك الانتهاء",
+            "expired": "منتهي",
+            "renewed": "تم التجديد",
+        }
+        return labels[self.protection_status_code]
+
+    @property
+    def needs_renewal(self):
+        return self.renewal_available and self.is_expired
+
+    @property
+    def needs_renewal_soon(self):
+        return self.renewal_available and self.is_approaching_protection_expiry
+
+    @property
+    def protection_alert_message(self):
+        if not self.protection_expiry:
+            return "تاريخ انتهاء الحماية غير محسوب بعد."
+        if self.needs_renewal:
+            return "انتهت الحماية ويجب تسجيل التجديد."
+        if self.needs_renewal_soon:
+            return "تنبيه: اقترب انتهاء الحماية ويستحسن تجهيز التجديد."
+        if self.has_been_renewed:
+            return "الحماية سارية بعد آخر عملية تجديد."
+        return "الحماية سارية حاليًا."
 
     @property
     def total_fees(self):
@@ -99,6 +193,7 @@ class BaseIPModel(models.Model):
             self.examination_fee,
             self.publication_fee,
             self.registration_fee,
+            self.renewal_fee,
             self.appeal_fee,
             self.additional_fee,
         )
@@ -129,6 +224,9 @@ class BaseIPModel(models.Model):
             self.appeal_hearing_date = None
             self.publication_fee = Decimal("0.00")
             self.registration_fee = Decimal("0.00")
+            self.renewal_count = 0
+            self.last_renewal_date = None
+            self.renewal_fee = Decimal("0.00")
             self.appeal_fee = Decimal("0.00")
             return
 
@@ -137,6 +235,10 @@ class BaseIPModel(models.Model):
             self.appeal_date = None
             self.appeal_hearing_date = None
             self.appeal_fee = Decimal("0.00")
+            if self.status != self.STATUS_REGISTERED:
+                self.renewal_count = 0
+                self.last_renewal_date = None
+                self.renewal_fee = Decimal("0.00")
             return
 
         if self.status == self.STATUS_REJECTED:
@@ -147,6 +249,9 @@ class BaseIPModel(models.Model):
             self.registration_number = ""
             self.publication_fee = Decimal("0.00")
             self.registration_fee = Decimal("0.00")
+            self.renewal_count = 0
+            self.last_renewal_date = None
+            self.renewal_fee = Decimal("0.00")
 
     def clean(self):
         errors = {}
@@ -163,6 +268,9 @@ class BaseIPModel(models.Model):
         if self.registration_date and self.filing_date and self.registration_date < self.filing_date:
             errors["registration_date"] = "تاريخ التسجيل يجب أن يكون بعد تاريخ الإيداع."
 
+        if self.last_renewal_date and self.filing_date and self.last_renewal_date < self.filing_date:
+            errors["last_renewal_date"] = "تاريخ آخر تجديد يجب أن يكون بعد تاريخ الإيداع."
+
         if self.appeal_hearing_date and self.appeal_date and self.appeal_hearing_date < self.appeal_date:
             errors["appeal_hearing_date"] = "تاريخ جلسة التظلم يجب أن يكون بعد تاريخ التظلم."
 
@@ -178,6 +286,15 @@ class BaseIPModel(models.Model):
                 errors["registration_date"] = "تاريخ التسجيل مطلوب عند اختيار حالة تسجيل."
             if not self.registration_number:
                 errors["registration_number"] = "رقم التسجيل مطلوب عند اختيار حالة تسجيل."
+            if self.last_renewal_date and not self.renewal_count:
+                errors["renewal_count"] = "عدد مرات التجديد مطلوب عند إدخال تاريخ آخر تجديد."
+            if self.renewal_fee and not self.renewal_count:
+                errors["renewal_count"] = "عدد مرات التجديد مطلوب عند إدخال رسوم التجديد."
+            if self.renewal_count and not self.last_renewal_date:
+                errors["last_renewal_date"] = "تاريخ آخر تجديد مطلوب عند تسجيل عملية تجديد."
+
+        if self.status != self.STATUS_REGISTERED and (self.renewal_count or self.last_renewal_date or self.renewal_fee):
+            errors["renewal_count"] = "بيانات التجديد متاحة فقط للسجلات المسجلة."
 
         if self.status == self.STATUS_REJECTED:
             if not self.decision_date:

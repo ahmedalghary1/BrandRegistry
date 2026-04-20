@@ -77,7 +77,7 @@ function parseDecimal(value) {
 
 function sumFees(form) {
   const feeFields = form.querySelectorAll(
-    "[data-fee-field], [name='filing_fee'], [name='examination_fee'], [name='publication_fee'], [name='registration_fee'], [name='appeal_fee'], [name='additional_fee']"
+    "[data-fee-field], [name='filing_fee'], [name='examination_fee'], [name='publication_fee'], [name='registration_fee'], [name='renewal_fee'], [name='appeal_fee'], [name='additional_fee']"
   );
 
   let total = 0;
@@ -130,6 +130,74 @@ function getFormField(form, roleName, fallbackSelector) {
 
 function getFieldGroup(field) {
   return field?.closest(".field-group") || null;
+}
+
+function getProtectionExpiryISO(filingDate, renewalCount) {
+  const parsedRenewalCount = Number.parseInt(renewalCount || "0", 10);
+  const totalYears = 10 * (1 + (Number.isFinite(parsedRenewalCount) && parsedRenewalCount > 0 ? parsedRenewalCount : 0));
+  return addYears(filingDate, totalYears);
+}
+
+function getRenewalStatus(status, filingDate, renewalCount) {
+  if (!filingDate) {
+    return DEFAULT_EMPTY_LABEL;
+  }
+
+  if (status !== "registered") {
+    return "يُتاح بعد التسجيل";
+  }
+
+  const parsedRenewalCount = Number.parseInt(renewalCount || "0", 10);
+  if (Number.isFinite(parsedRenewalCount) && parsedRenewalCount > 0) {
+    return "تم التجديد";
+  }
+
+  const expiry = getProtectionExpiryISO(filingDate, renewalCount);
+  if (!expiry) {
+    return DEFAULT_EMPTY_LABEL;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const expiryDate = new Date(expiry);
+  expiryDate.setHours(0, 0, 0, 0);
+
+  if (expiryDate < today) {
+    return "انتهت الحماية ويمكن التجديد الآن";
+  }
+
+  return "يمكن التجديد بعد انتهاء الحماية";
+}
+
+function getProtectionStatus(filingDate, renewalCount) {
+  const expiry = getProtectionExpiryISO(filingDate, renewalCount);
+  if (!expiry) {
+    return DEFAULT_EMPTY_LABEL;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const expiryDate = new Date(expiry);
+  expiryDate.setHours(0, 0, 0, 0);
+
+  const parsedRenewalCount = Number.parseInt(renewalCount || "0", 10);
+  const diffDays = Math.round((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return "منتهي";
+  }
+
+  if (diffDays <= 30) {
+    return "على وشك الانتهاء";
+  }
+
+  if (Number.isFinite(parsedRenewalCount) && parsedRenewalCount > 0) {
+    return "تم التجديد";
+  }
+
+  return "ساري";
 }
 
 function getFieldLabel(form, field) {
@@ -212,7 +280,10 @@ function initRecordForm(form) {
   const filingField = getFormField(form, "filing-date", "[name='filing_date']");
   const publicationPreview = form.querySelector("[data-derived='publication-deadline']");
   const protectionPreview = form.querySelector("[data-derived='protection-expiry']");
+  const renewalStatusPreview = form.querySelector("[data-derived='renewal-status']");
+  const protectionStatusPreview = form.querySelector("[data-derived='protection-status']");
   const totalFeesPreview = form.querySelector("[data-derived='total-fees']");
+  const renewalCountField = form.querySelector("[name='renewal_count']");
   const visibilityBlocks = form.querySelectorAll("[data-visible-for]");
   const imageInput = getFormField(form, "image-input", "[name='image']");
   const imagePreview = form.querySelector("[data-role='image-preview']");
@@ -229,7 +300,21 @@ function initRecordForm(form) {
     }
 
     if (protectionPreview) {
-      protectionPreview.value = formatDateISOToArabic(addYears(filingField?.value, 10));
+      protectionPreview.value = formatDateISOToArabic(
+        getProtectionExpiryISO(filingField?.value, renewalCountField?.value)
+      );
+    }
+
+    if (renewalStatusPreview) {
+      renewalStatusPreview.value = getRenewalStatus(
+        statusField?.value,
+        filingField?.value,
+        renewalCountField?.value
+      );
+    }
+
+    if (protectionStatusPreview) {
+      protectionStatusPreview.value = getProtectionStatus(filingField?.value, renewalCountField?.value);
     }
 
     if (totalFeesPreview) {
@@ -382,7 +467,7 @@ function initRecordForm(form) {
     });
   }
 
-  [publicationField, filingField].forEach((field) => {
+  [publicationField, filingField, renewalCountField].forEach((field) => {
     if (!field) {
       return;
     }
@@ -393,7 +478,7 @@ function initRecordForm(form) {
 
   form
     .querySelectorAll(
-      "[data-fee-field], [name='filing_fee'], [name='examination_fee'], [name='publication_fee'], [name='registration_fee'], [name='appeal_fee'], [name='additional_fee']"
+      "[data-fee-field], [name='filing_fee'], [name='examination_fee'], [name='publication_fee'], [name='registration_fee'], [name='renewal_fee'], [name='appeal_fee'], [name='additional_fee']"
     )
     .forEach((field) => {
       field.addEventListener("input", () => {

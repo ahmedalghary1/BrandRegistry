@@ -61,6 +61,7 @@ def with_total_fees(queryset):
         + Coalesce(F("examination_fee"), Value(0))
         + Coalesce(F("publication_fee"), Value(0))
         + Coalesce(F("registration_fee"), Value(0))
+        + Coalesce(F("renewal_fee"), Value(0))
         + Coalesce(F("appeal_fee"), Value(0))
         + Coalesce(F("additional_fee"), Value(0))
     )

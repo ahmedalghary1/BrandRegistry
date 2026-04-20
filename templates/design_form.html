@@ -93,6 +93,33 @@
         </div>
       </fieldset>
 
+      <fieldset class="fieldset">
+        <legend>الحماية المحسوبة</legend>
+        <div class="derived-grid">
+          <div class="derived-box">
+            <strong>مدة الحماية</strong>
+            <input class="form-control" type="text" readonly value="10 سنوات من تاريخ الإيداع">
+          </div>
+          <div class="derived-box">
+            <strong>تاريخ انتهاء الحماية</strong>
+            <input class="form-control" type="text" readonly data-derived="protection-expiry" value="{{ form.instance.protection_expiry|date:'Y-m-d'|default:'غير محسوب' }}">
+            <div class="field-help">يُحسب تلقائيًا من تاريخ الإيداع.</div>
+          </div>
+          <div class="derived-box">
+            <strong>حالة التجديد</strong>
+            <input class="form-control" type="text" readonly data-derived="renewal-status" value="{{ form.instance.renewal_status|default:'غير محسوب' }}">
+          </div>
+          <div class="derived-box">
+            <strong>حالة الحماية</strong>
+            <input class="form-control" type="text" readonly data-derived="protection-status" value="{{ form.instance.protection_status_label|default:'غير محسوب' }}">
+          </div>
+          <div class="derived-box">
+            <strong>إجمالي الرسوم</strong>
+            <input class="form-control" type="text" readonly data-derived="total-fees" value="{{ form.instance.total_fees|currency }}">
+          </div>
+        </div>
+      </fieldset>
+
       <fieldset class="fieldset" data-visible-for="accepted,registered,rejected">
         <legend>بيانات القرار</legend>
         <div class="form-grid form-grid-2">
@@ -132,20 +159,22 @@
             {{ form.registration_number }}
             {% if form.registration_number.errors %}<div class="field-error">{{ form.registration_number.errors|join:"، " }}</div>{% endif %}
           </div>
+          <div class="field-group" data-visible-for="registered">
+            <label for="{{ form.renewal_count.id_for_label }}">عدد مرات التجديد</label>
+            {{ form.renewal_count }}
+            {% if form.renewal_count.errors %}<div class="field-error">{{ form.renewal_count.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="registered">
+            <label for="{{ form.last_renewal_date.id_for_label }}">تاريخ آخر تجديد</label>
+            {{ form.last_renewal_date }}
+            {% if form.last_renewal_date.errors %}<div class="field-error">{{ form.last_renewal_date.errors|join:"، " }}</div>{% endif %}
+          </div>
         </div>
 
         <div class="derived-grid" style="margin-top: 1rem;">
           <div class="derived-box">
             <strong>آخر يوم في النشر عن القبول</strong>
             <input class="form-control" type="text" readonly data-derived="publication-deadline" value="{{ form.instance.publication_deadline|date:'Y-m-d'|default:'غير محسوب' }}">
-          </div>
-          <div class="derived-box">
-            <strong>تاريخ انتهاء الحماية</strong>
-            <input class="form-control" type="text" readonly data-derived="protection-expiry" value="{{ form.instance.protection_expiry|date:'Y-m-d'|default:'غير محسوب' }}">
-          </div>
-          <div class="derived-box">
-            <strong>إجمالي الرسوم</strong>
-            <input class="form-control" type="text" readonly data-derived="total-fees" value="{{ form.instance.total_fees|currency }}">
           </div>
         </div>
       </fieldset>
@@ -193,6 +222,12 @@
             <label for="{{ form.registration_fee.id_for_label }}">رسوم التسجيل</label>
             {{ form.registration_fee }}
             {% if form.registration_fee.errors %}<div class="field-error">{{ form.registration_fee.errors|join:"، " }}</div>{% endif %}
+          </div>
+          <div class="field-group" data-visible-for="registered">
+            <label for="{{ form.renewal_fee.id_for_label }}">رسوم التجديد</label>
+            {{ form.renewal_fee }}
+            <div class="field-help">يمكن تسجيل رسم التجديد حتى بعد انتهاء مدة الحماية.</div>
+            {% if form.renewal_fee.errors %}<div class="field-error">{{ form.renewal_fee.errors|join:"، " }}</div>{% endif %}
           </div>
           <div class="field-group" data-visible-for="rejected">
             <label for="{{ form.appeal_fee.id_for_label }}">رسوم التظلم</label>

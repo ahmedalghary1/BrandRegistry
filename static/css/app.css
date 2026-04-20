@@ -428,6 +428,12 @@ img {
   border-color: rgba(36, 123, 75, 0.16);
 }
 
+.badge-renewed {
+  background: rgba(36, 92, 166, 0.11);
+  color: var(--info);
+  border-color: rgba(36, 92, 166, 0.15);
+}
+
 .button-row,
 .form-actions {
   display: flex;
@@ -869,6 +875,20 @@ textarea.form-control {
 
 .success-text {
   color: var(--success);
+}
+
+.warning-text {
+  color: var(--warning);
+}
+
+.info-text {
+  color: var(--info);
+}
+
+.status-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 @media (max-width: 1180px) {

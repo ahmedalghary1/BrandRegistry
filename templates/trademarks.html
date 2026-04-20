@@ -102,6 +102,8 @@
             <th>القرار</th>
             <th>آخر يوم بالنشر</th>
             <th>انتهاء الحماية</th>
+            <th>حالة الحماية</th>
+            <th>رسوم التجديد</th>
             <th>إجمالي الرسوم</th>
             <th>الإجراءات</th>
           </tr>
@@ -129,9 +131,20 @@
               <td>{{ trademark.publication_deadline|date:"Y-m-d"|default:"—" }}</td>
               <td>
                 {{ trademark.protection_expiry|date:"Y-m-d"|default:"—" }}
+                <div class="small muted">من تاريخ الإيداع</div>
                 {% if trademark.is_approaching_protection_expiry %}
                   <div class="small danger-text">{{ trademark.days_until_expiry }} يوم متبقٍ</div>
                 {% endif %}
+              </td>
+              <td>
+                <div class="status-stack">
+                  <span class="{{ trademark.protection_status_code|protection_badge_class }}">{{ trademark.protection_status_label }}</span>
+                  <span class="small muted">{{ trademark.protection_alert_message }}</span>
+                </div>
+              </td>
+              <td>
+                {{ trademark.renewal_fee|currency }}
+                <div class="small muted">{{ trademark.renewal_status }}</div>
               </td>
               <td>{{ trademark.total_fees|currency }}</td>
               <td>
@@ -144,7 +157,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="9" class="empty-state">لا توجد علامات مطابقة لمدخلات البحث الحالية.</td>
+              <td colspan="11" class="empty-state">لا توجد علامات مطابقة لمدخلات البحث الحالية.</td>
             </tr>
           {% endfor %}
         </tbody>

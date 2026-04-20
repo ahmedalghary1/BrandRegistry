@@ -49,6 +49,8 @@ class BaseRecordForm(forms.ModelForm):
             "publication_number",
             "registration_date",
             "registration_number",
+            "renewal_count",
+            "last_renewal_date",
             "rejection_reasons",
             "appeal_date",
             "appeal_hearing_date",
@@ -56,6 +58,7 @@ class BaseRecordForm(forms.ModelForm):
             "examination_fee",
             "publication_fee",
             "registration_fee",
+            "renewal_fee",
             "appeal_fee",
             "additional_fee",
         ]
@@ -71,6 +74,10 @@ class BaseRecordForm(forms.ModelForm):
             "publication_number": forms.TextInput(attrs={"class": TEXT_INPUT_CLASS}),
             "registration_date": build_date_widget(),
             "registration_number": forms.TextInput(attrs={"class": TEXT_INPUT_CLASS}),
+            "renewal_count": forms.NumberInput(
+                attrs={"class": NUMBER_CLASS, "min": "0", "step": "1", "placeholder": "0"}
+            ),
+            "last_renewal_date": build_date_widget(),
             "rejection_reasons": forms.Textarea(attrs={"class": TEXTAREA_CLASS, "rows": 4}),
             "appeal_date": build_date_widget(),
             "appeal_hearing_date": build_date_widget(),
@@ -78,6 +85,7 @@ class BaseRecordForm(forms.ModelForm):
             "examination_fee": build_money_widget(),
             "publication_fee": build_money_widget(),
             "registration_fee": build_money_widget(),
+            "renewal_fee": build_money_widget(),
             "appeal_fee": build_money_widget(),
             "additional_fee": build_money_widget(),
         }
@@ -85,7 +93,12 @@ class BaseRecordForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        optional_fields = set(self.accepted_fields) | set(self.rejected_fields) | set(self.fee_fields) | {"image"}
+        optional_fields = (
+            set(self.accepted_fields)
+            | set(self.rejected_fields)
+            | set(self.fee_fields)
+            | {"image", "renewal_count", "last_renewal_date"}
+        )
         for field_name in optional_fields:
             if field_name in self.fields:
                 self.fields[field_name].required = False
@@ -95,6 +108,7 @@ class BaseRecordForm(forms.ModelForm):
             "number": self.get_number_placeholder(),
             "publication_number": "مثال: 125",
             "registration_number": "مثال: TM-2026-18",
+            "renewal_count": "0",
         }
         for field_name, placeholder in placeholders.items():
             if field_name in self.fields:
@@ -162,6 +176,9 @@ class BaseRecordForm(forms.ModelForm):
             if cleaned_data.get(field_name) in (None, ""):
                 cleaned_data[field_name] = Decimal("0.00")
 
+        if cleaned_data.get("renewal_count") in (None, ""):
+            cleaned_data["renewal_count"] = 0
+
         for field_name in self.Meta.fields:
             if field_name in cleaned_data:
                 setattr(self.instance, field_name, cleaned_data[field_name])
@@ -196,6 +213,7 @@ class TrademarkForm(BaseRecordForm):
         "examination_fee",
         "publication_fee",
         "registration_fee",
+        "renewal_fee",
         "appeal_fee",
         "additional_fee",
     )

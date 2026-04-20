@@ -38,3 +38,15 @@ def decision_badge_class(value):
         "registered": "badge badge-success",
     }
     return mapping.get(value, "badge")
+
+
+@register.filter
+def protection_badge_class(value):
+    mapping = {
+        "active": "badge badge-success",
+        "expiring": "badge badge-warning",
+        "expired": "badge badge-danger",
+        "renewed": "badge badge-renewed",
+        "unavailable": "badge",
+    }
+    return mapping.get(value, "badge")
