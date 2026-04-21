@@ -1,0 +1,29 @@
+appId: com.brandregistry
+productName: Brand Registry
+asar: true
+
+directories:
+  output: release
+
+files:
+  - "electron/**/*"
+  - "package.json"
+  - "static/dashboard_files/logo-gold.png"
+
+extraResources:
+  - from: "electron/resources/backend"
+    to: "backend"
+
+win:
+  signAndEditExecutable: false
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: "${productName}-Setup-${version}.${ext}"
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false

@@ -24,6 +24,10 @@ from .models import IndustrialDesign, SiteSettings, Trademark
 from .utils import register_arabic_font, shape_arabic, with_total_fees
 
 
+def healthcheck_view(request):
+    return HttpResponse("ok", content_type="text/plain; charset=utf-8")
+
+
 def apply_record_filters(queryset, cleaned_data):
     queryset = with_total_fees(queryset)
 
@@ -406,14 +410,14 @@ class ReportsView(generic.TemplateView):
 
         header_fill = PatternFill("solid", fgColor="0F4C5C")
         header_font = Font(color="FFFFFF", bold=True)
-        center = Alignment(horizontal="center", vertical="center")
+        right_align = Alignment(horizontal="right", vertical="center")
 
         sheet.append(headers)
         for index, header in enumerate(headers, start=1):
             cell = sheet.cell(row=1, column=index)
             cell.fill = header_fill
             cell.font = header_font
-            cell.alignment = center
+            cell.alignment = right_align
 
         for row in rows:
             sheet.append(row)
@@ -422,7 +426,7 @@ class ReportsView(generic.TemplateView):
             max_length = max(len(str(cell.value or "")) for cell in column_cells)
             sheet.column_dimensions[column_cells[0].column_letter].width = min(max_length + 4, 28)
             for cell in column_cells:
-                cell.alignment = center
+                cell.alignment = right_align
 
         buffer = BytesIO()
         workbook.save(buffer)
@@ -459,7 +463,7 @@ class ReportsView(generic.TemplateView):
             fontName=font_name,
             fontSize=9,
             leading=12,
-            alignment=1,
+            alignment=2,
         )
         header_style = ParagraphStyle(
             "ArabicHeader",
@@ -468,8 +472,11 @@ class ReportsView(generic.TemplateView):
             textColor=colors.white,
         )
 
-        data = [[Paragraph(shape_arabic(header), header_style) for header in headers]]
-        for row in rows:
+        pdf_headers = list(reversed(headers))
+        pdf_rows = [list(reversed(row)) for row in rows]
+
+        data = [[Paragraph(shape_arabic(header), header_style) for header in pdf_headers]]
+        for row in pdf_rows:
             data.append([Paragraph(shape_arabic(cell), cell_style) for cell in row])
 
         table = Table(data, repeatRows=1)

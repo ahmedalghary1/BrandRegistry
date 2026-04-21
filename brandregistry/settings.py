@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 
@@ -15,7 +16,10 @@ def ensure_writable_dir(preferred: Path, fallback: Path) -> Path:
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-PROJECT_DIR = Path(__file__).resolve().parent.parent
+if getattr(sys, "frozen", False):
+    PROJECT_DIR = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+else:
+    PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 # Local desktop-safe storage for the SQLite DB, uploads, and collected static files.
 appdata_root = Path(os.getenv("APPDATA")) if os.getenv("APPDATA") else (PROJECT_DIR / ".localdata")

@@ -185,6 +185,7 @@ class RegistryViewTests(TestCase):
 
     def test_main_pages_return_success(self):
         view_specs = [
+            (None, reverse("registry:healthz"), None),
             (DashboardView.as_view(), reverse("registry:dashboard"), {}),
             (TrademarkListView.as_view(), reverse("registry:trademarks:list"), {}),
             (
@@ -204,6 +205,10 @@ class RegistryViewTests(TestCase):
 
         for view, url, kwargs in view_specs:
             with self.subTest(url=url):
+                if view is None:
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, 200)
+                    continue
                 request = self.factory.get(url)
                 response = view(request, **kwargs)
                 self.assertEqual(response.status_code, 200)
@@ -290,3 +295,11 @@ class RegistryViewTests(TestCase):
         self.assertEqual(len(response.context["expiring_trademarks"]), 1)
         self.assertEqual(len(response.context["expired_designs"]), 1)
         self.assertGreaterEqual(response.context["current_alerts"], 2)
+
+    def test_reports_table_uses_rtl_record_layout(self):
+        response = self.client.get(reverse("registry:reports"), {"record_type": "trademark"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="table report-table"', html=False)
+        self.assertContains(response, 'class="record-inline report-record-inline"', html=False)
+        self.assertContains(response, self.trademark.name)

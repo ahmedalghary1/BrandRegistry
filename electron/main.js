@@ -7,9 +7,11 @@ const path = require("path");
 
 const APP_TITLE = "نظام إدارة العلامات والنماذج الصناعية";
 const PROJECT_ROOT = path.resolve(__dirname, "..");
-const MANAGE_PY = path.join(PROJECT_ROOT, "manage.py");
+const RUN_APP_PY = path.join(PROJECT_ROOT, "run_app.py");
 const SPLASH_HTML = path.join(__dirname, "splash.html");
 const ICON_PATH = path.join(PROJECT_ROOT, "static", "dashboard_files", "logo-gold.png");
+const BACKEND_DIST_NAME = "brandregistry-backend";
+const BACKEND_EXE_NAME = process.platform === "win32" ? `${BACKEND_DIST_NAME}.exe` : BACKEND_DIST_NAME;
 
 let djangoProcess = null;
 let mainWindow = null;
@@ -110,6 +112,34 @@ function resolvePythonCommand() {
     : { command: "python3", prefixArgs: [] };
 }
 
+function resolveBackendLaunch(port) {
+  if (app.isPackaged) {
+    const packagedBackend = path.join(
+      process.resourcesPath,
+      "backend",
+      BACKEND_DIST_NAME,
+      BACKEND_EXE_NAME
+    );
+
+    if (!fs.existsSync(packagedBackend)) {
+      throw new Error(`تعذر العثور على الباك إند المجمّع: ${packagedBackend}`);
+    }
+
+    return {
+      command: packagedBackend,
+      args: ["--host", "127.0.0.1", "--port", String(port)],
+      cwd: path.dirname(packagedBackend),
+    };
+  }
+
+  const python = resolvePythonCommand();
+  return {
+    command: python.command,
+    args: [...python.prefixArgs, RUN_APP_PY, "--host", "127.0.0.1", "--port", String(port)],
+    cwd: PROJECT_ROOT,
+  };
+}
+
 function waitForServer(url, timeoutMs = 45000) {
   const startedAt = Date.now();
   return new Promise((resolve, reject) => {
@@ -143,22 +173,17 @@ function waitForServer(url, timeoutMs = 45000) {
 }
 
 function startDjangoServer(port) {
-  const python = resolvePythonCommand();
-  const args = [
-    ...python.prefixArgs,
-    MANAGE_PY,
-    "runserver",
-    `127.0.0.1:${port}`,
-    "--noreload",
-  ];
+  const backend = resolveBackendLaunch(port);
 
-  djangoProcess = spawn(python.command, args, {
-    cwd: PROJECT_ROOT,
+  djangoProcess = spawn(backend.command, backend.args, {
+    cwd: backend.cwd,
     env: {
       ...process.env,
       DJANGO_SETTINGS_MODULE: "brandregistry.settings",
       DESKTOP_LOCAL_MODE: "1",
       DJANGO_DEBUG: process.env.DJANGO_DEBUG ?? "0",
+      APP_HOST: "127.0.0.1",
+      APP_PORT: String(port),
       PYTHONUNBUFFERED: "1",
       BROWSER: "none",
     },
@@ -206,8 +231,9 @@ function stopDjangoServer() {
 async function bootstrap() {
   appPort = await findFreePort();
   const appUrl = `http://127.0.0.1:${appPort}/`;
+  const healthUrl = `${appUrl}healthz/`;
   startDjangoServer(appPort);
-  await waitForServer(appUrl);
+  await waitForServer(healthUrl);
   createMainWindow(appUrl);
 }
 

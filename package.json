@@ -8,9 +8,13 @@
   "scripts": {
     "start": "electron\\start-electron.cmd",
     "electron": "electron\\start-electron.cmd",
-    "electron:dev": "electron\\start-electron.cmd"
+    "electron:dev": "electron\\start-electron.cmd",
+    "build:backend": "powershell -ExecutionPolicy Bypass -File .\\scripts\\build-backend.ps1",
+    "pack:win": "npm run build:backend && npx electron-builder --config electron-builder.yml --dir",
+    "dist:win": "npm run build:backend && npx electron-builder --config electron-builder.yml --win nsis"
   },
   "devDependencies": {
-    "electron": "^36.3.2"
+    "electron": "^36.3.2",
+    "electron-builder": "^24.13.3"
   }
 }

@@ -354,6 +354,10 @@ img {
   border-collapse: collapse;
 }
 
+.report-table {
+  direction: rtl;
+}
+
 .table th,
 .table td {
   padding: 0.9rem 0.95rem;
@@ -387,9 +391,27 @@ img {
   gap: 0.85rem;
 }
 
+.report-record-inline {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
 .record-inline-text strong {
   display: block;
   margin-bottom: 0.2rem;
+}
+
+.report-table .record-inline-text {
+  text-align: right;
+}
+
+.record-media-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .badge {

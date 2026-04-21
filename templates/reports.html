@@ -104,7 +104,7 @@
         </div>
       </div>
       <div class="table-wrap">
-        <table class="table">
+        <table class="table report-table">
           <thead>
             <tr>
               <th>الاسم</th>
@@ -120,7 +120,25 @@
           <tbody>
             {% for record in records %}
               <tr>
-                <td>{{ record.name }}</td>
+                <td>
+                  <div class="record-inline report-record-inline">
+                    {% if record.image %}
+                      <img class="record-media" src="{{ record.image.url }}" alt="{{ record.name }}">
+                    {% else %}
+                      <div class="record-media record-media-placeholder">—</div>
+                    {% endif %}
+                    <div class="record-inline-text">
+                      <strong>{{ record.name }}</strong>
+                      <span class="muted small">
+                        {% if record.image %}
+                          صورة مرفقة
+                        {% else %}
+                          بدون صورة
+                        {% endif %}
+                      </span>
+                    </div>
+                  </div>
+                </td>
                 <td>{{ record.number }}</td>
                 <td>{% include "partials/status_badge.html" with status=record.status status_display=record.get_status_display %}</td>
                 <td>{{ record.filing_date|date:"Y-m-d" }}</td>
