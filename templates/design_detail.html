@@ -52,7 +52,7 @@
         <div class="detail-item"><strong>تاريخ آخر تجديد</strong><span>{{ design.last_renewal_date|date:"Y-m-d"|default:"—" }}</span></div>
         <div class="detail-item"><strong>حالة الحماية</strong><span>{{ design.protection_status_label }}</span></div>
         <div class="detail-item"><strong>حالة التجديد</strong><span>{{ design.renewal_status }}</span></div>
-        <div class="detail-item"><strong>التجديد بعد الانتهاء</strong><span>{% if design.can_renew_after_expiry %}متاح{% else %}بعد التسجيل{% endif %}</span></div>
+        <div class="detail-item"><strong>التجديد بعد الانتهاء</strong><span>{{ design.renewal_availability_label }}</span></div>
       </div>
     </div>
 

@@ -103,6 +103,13 @@ class BaseRecordForm(forms.ModelForm):
             if field_name in self.fields:
                 self.fields[field_name].required = False
 
+        max_renewals = getattr(self._meta.model, "MAX_RENEWALS", None)
+        if "renewal_count" in self.fields:
+            if max_renewals is None:
+                self.fields["renewal_count"].widget.attrs.pop("max", None)
+            else:
+                self.fields["renewal_count"].widget.attrs["max"] = str(max_renewals)
+
         placeholders = {
             "name": self.get_name_placeholder(),
             "number": self.get_number_placeholder(),

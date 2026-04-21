@@ -50,7 +50,7 @@
         <div class="detail-item"><strong>تاريخ آخر تجديد</strong><span>{{ trademark.last_renewal_date|date:"Y-m-d"|default:"—" }}</span></div>
         <div class="detail-item"><strong>حالة الحماية</strong><span>{{ trademark.protection_status_label }}</span></div>
         <div class="detail-item"><strong>حالة التجديد</strong><span>{{ trademark.renewal_status }}</span></div>
-        <div class="detail-item"><strong>التجديد بعد الانتهاء</strong><span>{% if trademark.can_renew_after_expiry %}متاح{% else %}بعد التسجيل{% endif %}</span></div>
+        <div class="detail-item"><strong>التجديد بعد الانتهاء</strong><span>{{ trademark.renewal_availability_label }}</span></div>
       </div>
     </div>
 

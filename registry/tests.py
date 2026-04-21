@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -88,6 +89,64 @@ class TrademarkLogicTests(TestCase):
         self.assertEqual(instance.examination_fee, Decimal("0.00"))
         self.assertEqual(instance.additional_fee, Decimal("0.00"))
 
+    def test_trademark_supports_unlimited_ten_year_renewals(self):
+        trademark = Trademark.objects.create(
+            name="علامة متعددة التجديد",
+            number="TM-LIFE",
+            filing_date=date(2000, 1, 1),
+            status=Trademark.STATUS_REGISTERED,
+            registration_date=date(2000, 2, 1),
+            registration_number="REG-LIFE",
+            renewal_count=3,
+            last_renewal_date=date(2030, 1, 1),
+        )
+
+        self.assertEqual(trademark.total_protection_years, 40)
+        self.assertEqual(trademark.protection_expiry, date(2040, 1, 1))
+        self.assertTrue(trademark.can_renew_after_expiry)
+        self.assertEqual(trademark.renewal_policy_label, "يمكن التجديد كل 10 سنوات دون حد أقصى.")
+
+
+class IndustrialDesignLogicTests(TestCase):
+    def test_industrial_design_allows_one_five_year_renewal_only(self):
+        design = IndustrialDesign.objects.create(
+            name="نموذج مجدد",
+            number="DM-RENEW",
+            filing_date=date(2010, 1, 1),
+            status=IndustrialDesign.STATUS_REGISTERED,
+            registration_date=date(2010, 2, 1),
+            registration_number="REG-DM-RENEW",
+            renewal_count=1,
+            last_renewal_date=date(2020, 12, 15),
+        )
+
+        self.assertEqual(design.base_protection_expiry, date(2020, 1, 1))
+        self.assertEqual(design.total_protection_years, 15)
+        self.assertEqual(design.protection_expiry, date(2025, 1, 1))
+        self.assertFalse(design.can_renew_after_expiry)
+        self.assertEqual(design.renewal_status, "انتهت الحماية ولا يتاح تجديد إضافي")
+
+    def test_industrial_design_rejects_more_than_one_renewal(self):
+        design = IndustrialDesign(
+            name="نموذج غير صالح",
+            number="DM-INVALID",
+            filing_date=date(2010, 1, 1),
+            status=IndustrialDesign.STATUS_REGISTERED,
+            decision_date=date(2010, 1, 10),
+            announcement_date=date(2010, 1, 15),
+            publication_date=date(2010, 1, 20),
+            publication_number="10",
+            registration_date=date(2010, 2, 1),
+            registration_number="REG-DM-INVALID",
+            renewal_count=2,
+            last_renewal_date=date(2025, 1, 1),
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            design.full_clean()
+
+        self.assertIn("مرة واحدة فقط", context.exception.message_dict["renewal_count"][0])
+
 
 class RegistryViewTests(TestCase):
     def setUp(self):
@@ -162,7 +221,9 @@ class RegistryViewTests(TestCase):
         )
 
     def test_forms_expose_dynamic_widget_metadata(self):
-        forms_to_check = [TrademarkForm(), IndustrialDesignForm()]
+        trademark_form = TrademarkForm()
+        design_form = IndustrialDesignForm()
+        forms_to_check = [trademark_form, design_form]
 
         for form in forms_to_check:
             with self.subTest(form=form.__class__.__name__):
@@ -179,6 +240,9 @@ class RegistryViewTests(TestCase):
                 self.assertEqual(form.fields["additional_fee"].widget.attrs["data-fee-field"], "true")
                 self.assertIn("renewal_count", form.fields)
                 self.assertIn("last_renewal_date", form.fields)
+
+        self.assertNotIn("max", trademark_form.fields["renewal_count"].widget.attrs)
+        self.assertEqual(design_form.fields["renewal_count"].widget.attrs["max"], "1")
 
     def test_settings_form_required_fields_are_clear(self):
         form = SiteSettingsForm()

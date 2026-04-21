@@ -19,7 +19,7 @@
   </div>
 
   <section class="card form-panel">
-    <form method="post" enctype="multipart/form-data" data-record-form data-autosave-key="trademark-{{ form.instance.pk|default:'new' }}">
+    <form method="post" enctype="multipart/form-data" data-record-form data-autosave-key="trademark-{{ form.instance.pk|default:'new' }}" data-protection-years="{{ form.instance.PROTECTION_YEARS }}" data-renewal-years="{{ form.instance.RENEWAL_YEARS }}" data-max-renewals="{{ form.instance.MAX_RENEWALS|default_if_none:'' }}">
       {% csrf_token %}
 
       <div class="card draft-banner" data-role="draft-banner">
@@ -99,12 +99,12 @@
         <div class="derived-grid">
           <div class="derived-box">
             <strong>مدة الحماية</strong>
-            <input class="form-control" type="text" readonly value="10 سنوات من تاريخ الإيداع">
+            <input class="form-control" type="text" readonly value="{{ form.instance.protection_term_label }}">
           </div>
           <div class="derived-box">
             <strong>تاريخ انتهاء الحماية</strong>
             <input class="form-control" type="text" readonly data-derived="protection-expiry" value="{{ form.instance.protection_expiry|date:'Y-m-d'|default:'غير محسوب' }}">
-            <div class="field-help">يُحسب تلقائيًا من تاريخ الإيداع.</div>
+            <div class="field-help">يُحسب تلقائيًا من تاريخ الإيداع. {{ form.instance.renewal_policy_label }}</div>
           </div>
           <div class="derived-box">
             <strong>حالة التجديد</strong>
@@ -227,7 +227,7 @@
           <div class="field-group" data-visible-for="registered">
             <label for="{{ form.renewal_fee.id_for_label }}">رسوم التجديد</label>
             {{ form.renewal_fee }}
-            <div class="field-help">يمكن تسجيل رسم التجديد حتى بعد انتهاء مدة الحماية.</div>
+            <div class="field-help">{{ form.instance.renewal_policy_label }}</div>
             {% if form.renewal_fee.errors %}<div class="field-error">{{ form.renewal_fee.errors|join:"، " }}</div>{% endif %}
           </div>
           <div class="field-group" data-visible-for="rejected">

@@ -132,27 +132,50 @@ function getFieldGroup(field) {
   return field?.closest(".field-group") || null;
 }
 
-function getProtectionExpiryISO(filingDate, renewalCount) {
-  const parsedRenewalCount = Number.parseInt(renewalCount || "0", 10);
-  const totalYears = 10 * (1 + (Number.isFinite(parsedRenewalCount) && parsedRenewalCount > 0 ? parsedRenewalCount : 0));
+function parseInteger(value) {
+  const parsedValue = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
+function getRenewalRules(source) {
+  const protectionYears = parseInteger(source?.dataset?.protectionYears) ?? 10;
+  const renewalYears = parseInteger(source?.dataset?.renewalYears) ?? protectionYears;
+  const maxRenewals = parseInteger(source?.dataset?.maxRenewals);
+  return { protectionYears, renewalYears, maxRenewals };
+}
+
+function normalizeRenewalCount(renewalCount, rules = {}) {
+  const parsedRenewalCount = parseInteger(renewalCount);
+  if (parsedRenewalCount === null || parsedRenewalCount < 0) {
+    return 0;
+  }
+
+  if (Number.isFinite(rules.maxRenewals)) {
+    return Math.min(parsedRenewalCount, rules.maxRenewals);
+  }
+
+  return parsedRenewalCount;
+}
+
+function getProtectionExpiryISO(filingDate, renewalCount, rules = {}) {
+  const parsedRenewalCount = normalizeRenewalCount(renewalCount, rules);
+  const protectionYears = Number.isFinite(rules.protectionYears) ? rules.protectionYears : 10;
+  const renewalYears = Number.isFinite(rules.renewalYears) ? rules.renewalYears : protectionYears;
+  const totalYears = protectionYears + (renewalYears * parsedRenewalCount);
   return addYears(filingDate, totalYears);
 }
 
-function getRenewalStatus(status, filingDate, renewalCount) {
+function getRenewalStatus(status, filingDate, renewalCount, rules = {}) {
   if (!filingDate) {
     return DEFAULT_EMPTY_LABEL;
   }
 
   if (status !== "registered") {
-    return "يُتاح بعد التسجيل";
+    return "يتاح التجديد بعد التسجيل";
   }
 
-  const parsedRenewalCount = Number.parseInt(renewalCount || "0", 10);
-  if (Number.isFinite(parsedRenewalCount) && parsedRenewalCount > 0) {
-    return "تم التجديد";
-  }
-
-  const expiry = getProtectionExpiryISO(filingDate, renewalCount);
+  const parsedRenewalCount = normalizeRenewalCount(renewalCount, rules);
+  const expiry = getProtectionExpiryISO(filingDate, renewalCount, rules);
   if (!expiry) {
     return DEFAULT_EMPTY_LABEL;
   }
@@ -163,15 +186,26 @@ function getRenewalStatus(status, filingDate, renewalCount) {
   const expiryDate = new Date(expiry);
   expiryDate.setHours(0, 0, 0, 0);
 
+  if (Number.isFinite(rules.maxRenewals) && parsedRenewalCount >= rules.maxRenewals) {
+    if (expiryDate < today) {
+      return "انتهت الحماية ولا يتاح تجديد إضافي";
+    }
+    return "تم استخدام كل مرات التجديد المتاحة";
+  }
+
   if (expiryDate < today) {
-    return "انتهت الحماية ويمكن التجديد الآن";
+    return "انتهت الحماية ويحتاج إلى تجديد";
+  }
+
+  if (parsedRenewalCount > 0) {
+    return "تم التجديد";
   }
 
   return "يمكن التجديد بعد انتهاء الحماية";
 }
 
-function getProtectionStatus(filingDate, renewalCount) {
-  const expiry = getProtectionExpiryISO(filingDate, renewalCount);
+function getProtectionStatus(filingDate, renewalCount, rules = {}) {
+  const expiry = getProtectionExpiryISO(filingDate, renewalCount, rules);
   if (!expiry) {
     return DEFAULT_EMPTY_LABEL;
   }
@@ -182,7 +216,7 @@ function getProtectionStatus(filingDate, renewalCount) {
   const expiryDate = new Date(expiry);
   expiryDate.setHours(0, 0, 0, 0);
 
-  const parsedRenewalCount = Number.parseInt(renewalCount || "0", 10);
+  const parsedRenewalCount = normalizeRenewalCount(renewalCount, rules);
   const diffDays = Math.round((expiryDate - today) / (1000 * 60 * 60 * 24));
 
   if (diffDays < 0) {
@@ -292,6 +326,7 @@ function initRecordForm(form) {
   const draftStatus = form.querySelector("[data-role='draft-status']");
   const restoreButton = form.querySelector("[data-role='restore-draft']");
   const discardButton = form.querySelector("[data-role='discard-draft']");
+  const renewalRules = getRenewalRules(form);
   let draftTimer = null;
 
   function computeDerivedValues() {
@@ -301,7 +336,7 @@ function initRecordForm(form) {
 
     if (protectionPreview) {
       protectionPreview.value = formatDateISOToArabic(
-        getProtectionExpiryISO(filingField?.value, renewalCountField?.value)
+        getProtectionExpiryISO(filingField?.value, renewalCountField?.value, renewalRules)
       );
     }
 
@@ -309,12 +344,17 @@ function initRecordForm(form) {
       renewalStatusPreview.value = getRenewalStatus(
         statusField?.value,
         filingField?.value,
-        renewalCountField?.value
+        renewalCountField?.value,
+        renewalRules
       );
     }
 
     if (protectionStatusPreview) {
-      protectionStatusPreview.value = getProtectionStatus(filingField?.value, renewalCountField?.value);
+      protectionStatusPreview.value = getProtectionStatus(
+        filingField?.value,
+        renewalCountField?.value,
+        renewalRules
+      );
     }
 
     if (totalFeesPreview) {

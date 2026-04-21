@@ -23,6 +23,8 @@ class BaseIPModel(models.Model):
     STATUS_REJECTED = "rejected"
     STATUS_REGISTERED = "registered"
     PROTECTION_YEARS = 10
+    RENEWAL_YEARS = 10
+    MAX_RENEWALS = None
 
     STATUS_CHOICES = [
         (STATUS_UNDER_REVIEW, "تحت الفحص"),
@@ -99,12 +101,19 @@ class BaseIPModel(models.Model):
         return self.filing_date
 
     @property
+    def max_renewals(self):
+        return self.MAX_RENEWALS
+
+    @property
     def effective_renewal_count(self):
-        return max(self.renewal_count or 0, 0)
+        renewal_count = max(self.renewal_count or 0, 0)
+        if self.max_renewals is None:
+            return renewal_count
+        return min(renewal_count, self.max_renewals)
 
     @property
     def total_protection_years(self):
-        return self.PROTECTION_YEARS * (1 + self.effective_renewal_count)
+        return self.PROTECTION_YEARS + (self.RENEWAL_YEARS * self.effective_renewal_count)
 
     @property
     def base_protection_expiry(self):
@@ -116,7 +125,11 @@ class BaseIPModel(models.Model):
 
     @property
     def renewal_available(self):
-        return self.status == self.STATUS_REGISTERED and bool(self.protection_expiry)
+        return (
+            self.status == self.STATUS_REGISTERED
+            and bool(self.protection_expiry)
+            and not self.has_exhausted_renewals
+        )
 
     @property
     def can_renew_after_expiry(self):
@@ -125,6 +138,51 @@ class BaseIPModel(models.Model):
     @property
     def has_been_renewed(self):
         return self.effective_renewal_count > 0
+
+    @property
+    def has_exhausted_renewals(self):
+        return self.max_renewals is not None and self.effective_renewal_count >= self.max_renewals
+
+    @property
+    def protection_term_label(self):
+        if self.max_renewals is None:
+            return f"{self.PROTECTION_YEARS} سنوات من تاريخ الإيداع"
+        if self.max_renewals == 1:
+            return (
+                f"{self.PROTECTION_YEARS} سنوات من تاريخ الإيداع"
+                f" + {self.RENEWAL_YEARS} سنوات لتجديد واحد"
+            )
+        return (
+            f"{self.PROTECTION_YEARS} سنوات من تاريخ الإيداع"
+            f" + حتى {self.max_renewals} تجديدات"
+        )
+
+    @property
+    def renewal_policy_label(self):
+        if self.max_renewals is None:
+            return f"يمكن التجديد كل {self.RENEWAL_YEARS} سنوات دون حد أقصى."
+        if self.max_renewals == 1:
+            return f"يتاح تجديد واحد فقط لمدة إضافية قدرها {self.RENEWAL_YEARS} سنوات."
+        return (
+            f"الحد الأقصى للتجديد {self.max_renewals}"
+            f" مرات، وكل تجديد يضيف {self.RENEWAL_YEARS} سنوات."
+        )
+
+    @property
+    def renewal_availability_label(self):
+        if self.status != self.STATUS_REGISTERED:
+            return "بعد التسجيل"
+        if self.can_renew_after_expiry:
+            return "متاح"
+        return "غير متاح"
+
+    @property
+    def exhausted_renewal_status_label(self):
+        return "تم استخدام كل مرات التجديد المتاحة"
+
+    @property
+    def no_additional_renewal_status_label(self):
+        return "انتهت الحماية ولا يتاح تجديد إضافي"
 
     @property
     def is_expired(self):
@@ -137,6 +195,10 @@ class BaseIPModel(models.Model):
             return "غير محسوب"
         if self.status != self.STATUS_REGISTERED:
             return "يتاح التجديد بعد التسجيل"
+        if self.has_exhausted_renewals:
+            if self.is_expired:
+                return self.no_additional_renewal_status_label
+            return self.exhausted_renewal_status_label
         if self.is_expired:
             return "انتهت الحماية ويحتاج إلى تجديد"
         if self.has_been_renewed:
@@ -296,6 +358,18 @@ class BaseIPModel(models.Model):
         if self.status != self.STATUS_REGISTERED and (self.renewal_count or self.last_renewal_date or self.renewal_fee):
             errors["renewal_count"] = "بيانات التجديد متاحة فقط للسجلات المسجلة."
 
+        if self.status == self.STATUS_REGISTERED and self.max_renewals is not None:
+            if self.renewal_count and self.renewal_count > self.max_renewals:
+                if self.max_renewals == 1:
+                    errors["renewal_count"] = (
+                        f"يمكن تجديد هذا السجل مرة واحدة فقط لمدة إضافية قدرها "
+                        f"{self.RENEWAL_YEARS} سنوات."
+                    )
+                else:
+                    errors["renewal_count"] = (
+                        f"الحد الأقصى لعدد مرات التجديد هو {self.max_renewals}."
+                    )
+
         if self.status == self.STATUS_REJECTED:
             if not self.decision_date:
                 errors["decision_date"] = "تاريخ القرار مطلوب عند الرفض."
@@ -331,6 +405,9 @@ class Trademark(BaseIPModel):
 
 
 class IndustrialDesign(BaseIPModel):
+    RENEWAL_YEARS = 5
+    MAX_RENEWALS = 1
+
     name = models.CharField("اسم النموذج الصناعي", max_length=255, db_index=True)
     description = models.TextField("وصف النموذج", blank=True)
     image = models.ImageField(
