@@ -1,10 +1,14 @@
 from datetime import date, timedelta
 from decimal import Decimal
+from io import BytesIO
+import tempfile
 
 from django.core.exceptions import ValidationError
-from django.test import Client, RequestFactory, TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image as PILImage
 
 from .forms import IndustrialDesignForm, SiteSettingsForm, TrademarkForm
 from .models import IndustrialDesign, Trademark, add_years
@@ -303,3 +307,36 @@ class RegistryViewTests(TestCase):
         self.assertContains(response, 'class="table report-table"', html=False)
         self.assertContains(response, 'class="record-inline report-record-inline"', html=False)
         self.assertContains(response, self.trademark.name)
+
+    def test_pdf_report_export_supports_attached_images(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            image_buffer = BytesIO()
+            PILImage.new("RGB", (24, 18), color=(180, 40, 40)).save(image_buffer, format="PNG")
+            image_file = SimpleUploadedFile(
+                "report-image.png",
+                image_buffer.getvalue(),
+                content_type="image/png",
+            )
+
+            with override_settings(MEDIA_ROOT=media_root):
+                Trademark.objects.create(
+                    name="علامة بصورة",
+                    number="TM-IMG",
+                    filing_date=date(2024, 1, 1),
+                    status=Trademark.STATUS_REGISTERED,
+                    decision_date=date(2024, 1, 10),
+                    announcement_date=date(2024, 1, 11),
+                    publication_date=date(2024, 1, 12),
+                    publication_number="IMG-1",
+                    registration_date=date(2024, 1, 20),
+                    registration_number="REG-IMG",
+                    image=image_file,
+                )
+
+                response = self.client.get(
+                    reverse("registry:reports"),
+                    {"record_type": "trademark", "export": "pdf"},
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")

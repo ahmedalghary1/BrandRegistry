@@ -12,6 +12,8 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.utils import ImageReader
+from reportlab.platypus import Image as RLImage
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .forms import (
@@ -362,8 +364,9 @@ class ReportsView(generic.TemplateView):
 
     def export_report(self, export_format):
         title = f"تقرير {self.config['title']}"
+        records = list(self.queryset)
         rows = []
-        for record in self.queryset:
+        for record in records:
             rows.append(
                 [
                     record.name,
@@ -400,7 +403,7 @@ class ReportsView(generic.TemplateView):
 
         if export_format == "excel":
             return self.export_excel(title, headers, rows)
-        return self.export_pdf(title, headers, rows)
+        return self.export_pdf(title, headers, rows, records)
 
     def export_excel(self, title, headers, rows):
         workbook = openpyxl.Workbook()
@@ -438,7 +441,32 @@ class ReportsView(generic.TemplateView):
         response["Content-Disposition"] = f'attachment; filename="{self.record_type}-report.xlsx"'
         return response
 
-    def export_pdf(self, title, headers, rows):
+    def build_pdf_image_cell(self, record, text_style):
+        image_field = getattr(record, "image", None)
+        image_path = getattr(image_field, "path", "") if image_field else ""
+        if not image_path:
+            return Paragraph(shape_arabic("—"), text_style)
+
+        try:
+            image_reader = ImageReader(image_path)
+            width, height = image_reader.getSize()
+            if not width or not height:
+                raise ValueError("Invalid image dimensions.")
+
+            max_width = 34
+            max_height = 34
+            scale = min(max_width / width, max_height / height)
+            thumbnail = RLImage(
+                image_path,
+                width=max(1, width * scale),
+                height=max(1, height * scale),
+            )
+            thumbnail.hAlign = "CENTER"
+            return thumbnail
+        except Exception:
+            return Paragraph(shape_arabic("—"), text_style)
+
+    def export_pdf(self, title, headers, rows, records):
         font_name, bold_name = register_arabic_font()
         buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -472,14 +500,20 @@ class ReportsView(generic.TemplateView):
             textColor=colors.white,
         )
 
-        pdf_headers = list(reversed(headers))
-        pdf_rows = [list(reversed(row)) for row in rows]
+        pdf_headers = list(reversed([*headers, "الصورة المرفقة"]))
 
         data = [[Paragraph(shape_arabic(header), header_style) for header in pdf_headers]]
-        for row in pdf_rows:
-            data.append([Paragraph(shape_arabic(cell), cell_style) for cell in row])
+        for record, row in zip(records, rows):
+            row_with_image = [*row, self.build_pdf_image_cell(record, cell_style)]
+            pdf_row = list(reversed(row_with_image))
+            data.append(
+                [
+                    Paragraph(shape_arabic(cell), cell_style) if isinstance(cell, str) else cell
+                    for cell in pdf_row
+                ]
+            )
 
-        table = Table(data, repeatRows=1)
+        table = Table(data, repeatRows=1, colWidths=[60] + [None] * (len(pdf_headers) - 1))
         table.setStyle(
             TableStyle(
                 [
@@ -491,6 +525,7 @@ class ReportsView(generic.TemplateView):
                     ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
                     ("TOPPADDING", (0, 0), (-1, -1), 6),
                     ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
                 ]
             )
         )
