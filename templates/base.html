@@ -52,7 +52,6 @@
             </span>
           </a>
         </nav>
-
  
       </aside>
 
@@ -67,14 +66,12 @@
             {% block topbar_actions %}{% endblock %}
           </div>
         </header>
-
         <main class="page-container">
           {% include "partials/messages.html" %}
           {% block content %}{% endblock %}
         </main>
       </div>
     </div>
-
     {% block extra_js %}{% endblock %}
     <script src="{% static 'js/app.js' %}"></script>
   </body>
