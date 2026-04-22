@@ -106,6 +106,128 @@ function initDismissMessages() {
   });
 }
 
+function initConfirmableActions() {
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    const message = form.dataset.confirmMessage;
+    if (message && !window.confirm(message)) {
+      event.preventDefault();
+    }
+  });
+}
+
+function showPageMessage(message, tone = "success") {
+  const pageContainer = document.querySelector(".page-container");
+  if (!pageContainer) {
+    window.alert(message);
+    return;
+  }
+
+  const messagesContainer = pageContainer.querySelector(".messages") || document.createElement("div");
+  if (!messagesContainer.classList.contains("messages")) {
+    messagesContainer.className = "messages";
+    pageContainer.prepend(messagesContainer);
+  }
+
+  const messageElement = document.createElement("div");
+  messageElement.className = `message message-${tone}`;
+  const textElement = document.createElement("span");
+  textElement.textContent = message;
+
+  const dismissButton = document.createElement("button");
+  dismissButton.type = "button";
+  dismissButton.className = "message-dismiss";
+  dismissButton.setAttribute("data-dismiss-parent", "");
+  dismissButton.setAttribute("aria-label", "إخفاء الرسالة");
+  dismissButton.textContent = "×";
+
+  messageElement.appendChild(textElement);
+  messageElement.appendChild(dismissButton);
+  messagesContainer.prepend(messageElement);
+}
+
+function initDesktopBackupControls() {
+  const desktopApp = window.desktopApp;
+  const panel = document.querySelector("[data-role='desktop-backup-panel']");
+  const directoryLabel = document.querySelector("[data-role='desktop-backup-directory']");
+  const chooseButton = document.querySelector("[data-role='desktop-backup-create']");
+  const resetButton = document.querySelector("[data-role='desktop-backup-reset']");
+  const createForm = document.querySelector("[data-role='backup-create-form']");
+
+  if (!desktopApp || !panel || !directoryLabel || !chooseButton || !resetButton || !createForm) {
+    return;
+  }
+
+  function updateDirectoryLabel(directory) {
+    directoryLabel.textContent = directory || "سيتم استخدام المسار الافتراضي الحالي.";
+    directoryLabel.setAttribute("dir", directory ? "ltr" : "rtl");
+  }
+
+  panel.hidden = false;
+
+  desktopApp
+    .getPreferredBackupDirectory()
+    .then((directory) => updateDirectoryLabel(directory))
+    .catch(() => updateDirectoryLabel(""));
+
+  chooseButton.addEventListener("click", async () => {
+    chooseButton.disabled = true;
+
+    try {
+      const result = await desktopApp.chooseBackupDirectoryAndCreate();
+      if (result?.canceled) {
+        return;
+      }
+
+      updateDirectoryLabel(result?.preferredDirectory || "");
+      showPageMessage(result?.message || "تم إنشاء النسخة الاحتياطية بنجاح.", "success");
+    } catch (error) {
+      showPageMessage(error?.message || "تعذر إنشاء النسخة الاحتياطية في المجلد المحدد.", "error");
+    } finally {
+      chooseButton.disabled = false;
+    }
+  });
+
+  resetButton.addEventListener("click", async () => {
+    resetButton.disabled = true;
+
+    try {
+      await desktopApp.useDefaultBackupDirectory();
+      updateDirectoryLabel("");
+      showPageMessage("تمت إعادة النسخ الاحتياطي إلى المجلد الافتراضي للتطبيق.", "success");
+    } catch (error) {
+      showPageMessage(error?.message || "تعذر تحديث مجلد النسخ الاحتياطي الافتراضي.", "error");
+    } finally {
+      resetButton.disabled = false;
+    }
+  });
+
+  createForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submitButton = createForm.querySelector("button[type='submit']");
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+
+    try {
+      const result = await desktopApp.createBackupInPreferredDirectory();
+      updateDirectoryLabel(result?.preferredDirectory || "");
+      showPageMessage(result?.message || "تم إنشاء النسخة الاحتياطية بنجاح.", "success");
+    } catch (error) {
+      showPageMessage(error?.message || "تعذر إنشاء النسخة الاحتياطية.", "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+    }
+  });
+}
+
 function safeParseDraft(rawValue) {
   if (!rawValue) {
     return null;
@@ -613,6 +735,8 @@ function initApp() {
   toggleButton?.addEventListener("click", toggleSidebar);
 
   initDismissMessages();
+  initConfirmableActions();
+  initDesktopBackupControls();
 
   document.querySelectorAll("[data-record-form], [data-enhanced-form]").forEach((form) => {
     initRecordForm(form);

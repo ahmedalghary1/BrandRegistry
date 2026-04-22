@@ -2,7 +2,7 @@
 
 {% block title %}الإعدادات | {{ app_title }}{% endblock %}
 {% block page_title %}إعدادات النظام{% endblock %}
-{% block page_subtitle %}تخصيص اسم النظام والوصف والشعار داخل الواجهة المحلية{% endblock %}
+{% block page_subtitle %}تخصيص اسم النظام والوصف والشعار وإدارة النسخ الاحتياطية{% endblock %}
 
 {% block content %}
   <div class="breadcrumbs">
@@ -53,5 +53,94 @@
         <button class="btn btn-primary" type="submit">حفظ الإعدادات</button>
       </div>
     </form>
+  </section>
+
+  <section class="card form-panel" style="max-width: 900px; margin-top: 1rem;">
+    <div class="section-title">
+      <div>
+        <h3>النسخ الاحتياطي والاستعادة</h3>
+        <p class="muted" style="margin: 0.35rem 0 0;">إدارة نسخة آمنة من قاعدة البيانات مع دعم الاستعادة عند الحاجة.</p>
+      </div>
+    </div>
+
+    <div class="required-note">
+      يتم حفظ النسخ الاحتياطية تلقائيًا داخل:
+      <strong dir="ltr">{{ backup_directory }}</strong>
+    </div>
+
+    <div class="section-grid settings-backup-grid">
+      <div class="card section-card">
+        <div class="section-title">
+          <h3>إنشاء نسخة احتياطية</h3>
+        </div>
+        <p class="field-help">سيتم إنشاء ملف مضغوط يحتوي على قاعدة البيانات الحالية وجميع الصور والملفات داخل مجلد الوسائط.</p>
+        <div class="required-note desktop-backup-panel" data-role="desktop-backup-panel" hidden>
+          <div>
+            <strong>مجلد الحفظ المخصص في نسخة سطح المكتب</strong>
+            <div class="small muted" data-role="desktop-backup-directory">سيتم استخدام المسار الافتراضي الحالي.</div>
+          </div>
+          <div class="button-row" style="margin-top: 0.75rem;">
+            <button class="btn btn-secondary" type="button" data-role="desktop-backup-create">اختيار مجلد وإنشاء نسخة</button>
+            <button class="btn btn-secondary" type="button" data-role="desktop-backup-reset">استخدام المجلد الافتراضي</button>
+          </div>
+        </div>
+        <form method="post" action="{% url 'registry:backup_create' %}" data-role="backup-create-form">
+          {% csrf_token %}
+          <div class="form-actions" style="margin-top: 1rem;">
+            <button class="btn btn-success" type="submit">إنشاء نسخة احتياطية الآن</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card section-card">
+        <div class="section-title">
+          <h3>استعادة نسخة احتياطية</h3>
+        </div>
+        <p class="field-help">اختر ملف نسخة احتياطية معتمد وسيتم استبدال قاعدة البيانات الحالية والصور المرفقة به بعد التحقق من سلامته.</p>
+        <form
+          method="post"
+          action="{% url 'registry:backup_restore' %}"
+          enctype="multipart/form-data"
+          data-confirm-message="سيتم استبدال قاعدة البيانات الحالية بهذه النسخة الاحتياطية. هل تريد المتابعة؟"
+        >
+          {% csrf_token %}
+          <div class="field-group">
+            <label for="{{ restore_form.backup_file.id_for_label }}">ملف النسخة الاحتياطية</label>
+            {{ restore_form.backup_file }}
+            {% if restore_form.backup_file.errors %}
+              <div class="field-error">{{ restore_form.backup_file.errors|join:"، " }}</div>
+            {% endif %}
+          </div>
+          <div class="form-actions" style="margin-top: 1rem;">
+            <button class="btn btn-danger" type="submit">استعادة النسخة الاحتياطية</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card section-card" style="margin-top: 1rem;">
+      <div class="section-title">
+        <h3>أحدث النسخ الاحتياطية</h3>
+      </div>
+      {% if backup_records %}
+        <div class="list-stack">
+          {% for backup in backup_records %}
+            <div class="list-item">
+              <div class="list-item-meta">
+                <strong dir="ltr">{{ backup.name }}</strong>
+                <span class="muted">
+                  {{ backup.created_at|date:"Y-m-d H:i" }} | {{ backup.size_bytes|filesizeformat }}
+                </span>
+              </div>
+              <div class="button-row">
+                <a class="btn btn-secondary" href="{% url 'registry:backup_download' backup.name %}">تنزيل</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">لا توجد نسخ احتياطية محفوظة بعد.</div>
+      {% endif %}
+    </div>
   </section>
 {% endblock %}

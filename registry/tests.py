@@ -1,17 +1,22 @@
 from datetime import date, timedelta
 from decimal import Decimal
 from io import BytesIO
+from pathlib import Path
+import sqlite3
 import tempfile
+from unittest.mock import Mock, patch
+import zipfile
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, RequestFactory, TestCase, override_settings
+from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image as PILImage
 
 from .forms import IndustrialDesignForm, SiteSettingsForm, TrademarkForm
 from .models import IndustrialDesign, Trademark, add_years
+from .services.database_backup import BackupOperationError, DatabaseBackupService
 from .views import (
     DashboardView,
     DesignDetailView,
@@ -21,6 +26,126 @@ from .views import (
     TrademarkDetailView,
     TrademarkListView,
 )
+
+
+class DatabaseBackupServiceTests(SimpleTestCase):
+    def create_sqlite_db(self, file_path, values):
+        connection = sqlite3.connect(file_path)
+        try:
+            connection.execute("CREATE TABLE records (name TEXT NOT NULL)")
+            connection.executemany(
+                "INSERT INTO records (name) VALUES (?)",
+                [(value,) for value in values],
+            )
+            connection.commit()
+        finally:
+            connection.close()
+
+    def fetch_names(self, file_path):
+        connection = sqlite3.connect(file_path)
+        try:
+            return [row[0] for row in connection.execute("SELECT name FROM records ORDER BY rowid")]
+        finally:
+            connection.close()
+
+    def extract_archive(self, archive_path):
+        temp_dir = tempfile.TemporaryDirectory()
+        temp_root = Path(temp_dir.name)
+        with zipfile.ZipFile(archive_path, "r") as archive:
+            archive.extractall(temp_root)
+        return temp_dir, temp_root
+
+    def test_create_backup_creates_archive_with_database_and_media(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            database_path = temp_root / "source.sqlite3"
+            backup_dir = temp_root / "backups"
+            media_root = temp_root / "media"
+            media_root.mkdir()
+            (media_root / "logos").mkdir()
+            (media_root / "logos" / "logo.txt").write_text("logo", encoding="utf-8")
+            self.create_sqlite_db(database_path, ["Alpha"])
+
+            service = DatabaseBackupService(
+                database_path=database_path,
+                backup_dir=backup_dir,
+                media_root=media_root,
+            )
+            backup_record = service.create_backup()
+
+            self.assertTrue(backup_record.path.exists())
+            self.assertTrue(backup_record.name.endswith(".backup.zip"))
+
+            extracted_archive, extracted_root = self.extract_archive(backup_record.path)
+            try:
+                self.assertEqual(
+                    self.fetch_names(extracted_root / "database" / "db.sqlite3"),
+                    ["Alpha"],
+                )
+                self.assertTrue((extracted_root / "media" / "logos" / "logo.txt").exists())
+            finally:
+                extracted_archive.cleanup()
+
+    def test_restore_from_backup_reverts_database_and_media_content(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            database_path = temp_root / "source.sqlite3"
+            backup_dir = temp_root / "backups"
+            media_root = temp_root / "media"
+            media_root.mkdir()
+            (media_root / "logos").mkdir()
+            original_media_file = media_root / "logos" / "logo.txt"
+            original_media_file.write_text("original", encoding="utf-8")
+            self.create_sqlite_db(database_path, ["Alpha"])
+
+            service = DatabaseBackupService(
+                database_path=database_path,
+                backup_dir=backup_dir,
+                media_root=media_root,
+            )
+            backup_record = service.create_backup()
+
+            connection = sqlite3.connect(database_path)
+            try:
+                connection.execute("DELETE FROM records")
+                connection.execute("INSERT INTO records (name) VALUES (?)", ("Beta",))
+                connection.commit()
+            finally:
+                connection.close()
+
+            original_media_file.write_text("changed", encoding="utf-8")
+
+            service.restore_from_backup(backup_record.path)
+            self.assertEqual(self.fetch_names(database_path), ["Alpha"])
+            self.assertEqual(original_media_file.read_text(encoding="utf-8"), "original")
+
+    def test_create_backup_accepts_custom_target_directory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            database_path = temp_root / "source.sqlite3"
+            default_backup_dir = temp_root / "default-backups"
+            custom_backup_dir = temp_root / "custom-backups"
+            self.create_sqlite_db(database_path, ["Alpha"])
+
+            service = DatabaseBackupService(database_path=database_path, backup_dir=default_backup_dir)
+            backup_record = service.create_backup(custom_backup_dir)
+
+            self.assertEqual(backup_record.path.parent, custom_backup_dir)
+            self.assertTrue(backup_record.path.name.endswith(".backup.zip"))
+
+    def test_restore_rejects_non_sqlite_file(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            database_path = temp_root / "source.sqlite3"
+            backup_dir = temp_root / "backups"
+            invalid_backup_path = temp_root / "invalid.sqlite3"
+            self.create_sqlite_db(database_path, ["Alpha"])
+            invalid_backup_path.write_text("not a sqlite file", encoding="utf-8")
+
+            service = DatabaseBackupService(database_path=database_path, backup_dir=backup_dir)
+
+            with self.assertRaises(BackupOperationError):
+                service.restore_from_backup(invalid_backup_path)
 
 
 class TrademarkLogicTests(TestCase):
@@ -340,3 +465,64 @@ class RegistryViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
+
+    @patch("registry.views.get_backup_service")
+    def test_backup_create_view_redirects_after_success(self, mock_get_backup_service):
+        mock_service = Mock()
+        mock_service.create_backup.return_value = type(
+            "BackupStub",
+            (),
+            {"name": "brandregistry-backup-1.sqlite3"},
+        )()
+        mock_get_backup_service.return_value = mock_service
+
+        response = self.client.post(reverse("registry:backup_create"))
+
+        self.assertEqual(response.status_code, 302)
+        mock_service.create_backup.assert_called_once()
+
+    @patch("registry.views.get_backup_service")
+    def test_desktop_backup_create_accepts_custom_directory(self, mock_get_backup_service):
+        mock_service = Mock()
+        mock_service.create_backup.return_value = type(
+            "BackupStub",
+            (),
+            {
+                "name": "brandregistry-backup-1.sqlite3",
+                "path": Path("C:/chosen/brandregistry-backup-1.sqlite3"),
+            },
+        )()
+        mock_get_backup_service.return_value = mock_service
+
+        with override_settings(DESKTOP_LOCAL_MODE=True):
+            response = self.client.post(
+                reverse("registry:desktop_backup_create"),
+                data='{"targetDirectory":"C:/chosen"}',
+                content_type="application/json",
+                HTTP_X_DESKTOP_APP="1",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        mock_service.create_backup.assert_called_once_with("C:/chosen")
+
+    @patch("registry.views.get_backup_service")
+    def test_desktop_backup_before_exit_returns_json_success(self, mock_get_backup_service):
+        mock_service = Mock()
+        mock_service.create_backup.return_value = type(
+            "BackupStub",
+            (),
+            {
+                "name": "brandregistry-backup-1.sqlite3",
+                "path": Path("C:/backups/brandregistry-backup-1.sqlite3"),
+            },
+        )()
+        mock_get_backup_service.return_value = mock_service
+
+        with override_settings(DESKTOP_LOCAL_MODE=True):
+            response = self.client.post(
+                reverse("registry:desktop_backup_before_exit"),
+                HTTP_X_DESKTOP_APP="1",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["ok"], True)

@@ -111,6 +111,10 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = DATA_DIR / "media"
 MEDIA_ROOT = ensure_writable_dir(MEDIA_ROOT, fallback_root / "trademark-registry" / "media")
 
+BACKUP_DIR = DATA_DIR / "backups"
+BACKUP_DIR = ensure_writable_dir(BACKUP_DIR, fallback_root / "trademark-registry" / "backups")
+BACKUP_FILENAME_PREFIX = "brandregistry-backup"
+
 FILE_UPLOAD_PERMISSIONS = 0o644
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

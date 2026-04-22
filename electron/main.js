@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog } = require("electron");
+const { app, BrowserWindow, Menu, dialog, ipcMain } = require("electron");
 const { execFile, spawn } = require("child_process");
 const fs = require("fs");
 const http = require("http");
@@ -12,6 +12,7 @@ const SPLASH_HTML = path.join(__dirname, "splash.html");
 const ICON_PATH = path.join(PROJECT_ROOT, "static", "dashboard_files", "logo-gold.png");
 const BACKEND_DIST_NAME = "brandregistry-backend";
 const BACKEND_EXE_NAME = process.platform === "win32" ? `${BACKEND_DIST_NAME}.exe` : BACKEND_DIST_NAME;
+const BACKUP_PREFERENCES_FILE = "backup-preferences.json";
 
 let djangoProcess = null;
 let mainWindow = null;
@@ -19,6 +20,50 @@ let splashWindow = null;
 let appPort = null;
 let isQuitting = false;
 let bootstrapErrorShown = false;
+let isHandlingClosePrompt = false;
+
+function getBackupPreferencesPath() {
+  return path.join(app.getPath("userData"), BACKUP_PREFERENCES_FILE);
+}
+
+function loadBackupPreferences() {
+  try {
+    const filePath = getBackupPreferencesPath();
+    if (!fs.existsSync(filePath)) {
+      return {};
+    }
+
+    const content = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(content);
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveBackupPreferences(preferences) {
+  const filePath = getBackupPreferencesPath();
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, JSON.stringify(preferences, null, 2), "utf8");
+}
+
+function getPreferredBackupDirectory() {
+  const preferences = loadBackupPreferences();
+  const directory = preferences.preferredBackupDirectory;
+
+  if (!directory || !fs.existsSync(directory)) {
+    return null;
+  }
+
+  return directory;
+}
+
+function setPreferredBackupDirectory(directory) {
+  saveBackupPreferences({ preferredBackupDirectory: directory });
+}
+
+function clearPreferredBackupDirectory() {
+  saveBackupPreferences({});
+}
 
 function createSplashWindow() {
   splashWindow = new BrowserWindow({
@@ -75,6 +120,62 @@ function createMainWindow(targetUrl) {
       splashWindow.close();
     }
     mainWindow.show();
+  });
+
+  mainWindow.on("close", async (event) => {
+    if (isQuitting || isHandlingClosePrompt) {
+      return;
+    }
+
+    event.preventDefault();
+    isHandlingClosePrompt = true;
+
+    try {
+      const choice = await dialog.showMessageBox(mainWindow, {
+        type: "question",
+        buttons: [
+          "إنشاء نسخة احتياطية ثم إغلاق",
+          "إغلاق بدون نسخة احتياطية",
+          "إلغاء",
+        ],
+        defaultId: 0,
+        cancelId: 2,
+        noLink: true,
+        title: APP_TITLE,
+        message: "هل تريد إنشاء نسخة احتياطية من قاعدة البيانات قبل إغلاق التطبيق؟",
+        detail: "يمكنك إنشاء نسخة احتياطية الآن، أو الإغلاق مباشرة دون نسخ احتياطي.",
+      });
+
+      if (choice.response === 2) {
+        return;
+      }
+
+      if (choice.response === 0) {
+        try {
+          await requestBackupBeforeExit();
+        } catch (error) {
+          const errorChoice = await dialog.showMessageBox(mainWindow, {
+            type: "warning",
+            buttons: ["إغلاق بدون نسخة احتياطية", "إلغاء"],
+            defaultId: 1,
+            cancelId: 1,
+            noLink: true,
+            title: APP_TITLE,
+            message: "تعذر إنشاء النسخة الاحتياطية قبل الإغلاق.",
+            detail: error.message,
+          });
+
+          if (errorChoice.response !== 0) {
+            return;
+          }
+        }
+      }
+
+      isQuitting = true;
+      app.quit();
+    } finally {
+      isHandlingClosePrompt = false;
+    }
   });
 
   mainWindow.on("closed", () => {
@@ -170,6 +271,119 @@ function waitForServer(url, timeoutMs = 45000) {
 
     check();
   });
+}
+
+function requestDesktopBackup(pathname, payload = {}) {
+  return new Promise((resolve, reject) => {
+    if (!appPort) {
+      reject(new Error("تعذر تحديد منفذ الخادم المحلي."));
+      return;
+    }
+
+    const requestBody = JSON.stringify(payload);
+    const request = http.request(
+      {
+        hostname: "127.0.0.1",
+        port: appPort,
+        path: pathname,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(requestBody),
+          "X-Desktop-App": "1",
+        },
+      },
+      (response) => {
+        let responseBody = "";
+        response.setEncoding("utf8");
+        response.on("data", (chunk) => {
+          responseBody += chunk;
+        });
+        response.on("end", () => {
+          let payload = null;
+          if (responseBody) {
+            try {
+              payload = JSON.parse(responseBody);
+            } catch (error) {
+              reject(new Error("تعذر قراءة استجابة النسخ الاحتياطي من الخادم المحلي."));
+              return;
+            }
+          }
+
+          if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300 && payload?.ok) {
+            resolve(payload);
+            return;
+          }
+
+          reject(new Error(payload?.message || "فشلت عملية النسخ الاحتياطي قبل الإغلاق."));
+        });
+      }
+    );
+
+    request.on("error", () => {
+      reject(new Error("تعذر الاتصال بالخادم المحلي لتنفيذ النسخ الاحتياطي."));
+    });
+
+    request.setTimeout(15000, () => {
+      request.destroy();
+      reject(new Error("انتهت مهلة انتظار النسخ الاحتياطي قبل الإغلاق."));
+    });
+
+    request.end(requestBody);
+  });
+}
+
+function requestBackupBeforeExit() {
+  return requestDesktopBackup("/desktop/backup-before-exit/", {
+    targetDirectory: getPreferredBackupDirectory(),
+  });
+}
+
+async function chooseBackupDirectory() {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "اختر مجلد حفظ النسخة الاحتياطية",
+    defaultPath: getPreferredBackupDirectory() || app.getPath("documents"),
+    properties: ["openDirectory", "createDirectory"],
+    buttonLabel: "اختيار المجلد",
+  });
+
+  if (result.canceled || !result.filePaths.length) {
+    return null;
+  }
+
+  const selectedDirectory = result.filePaths[0];
+  setPreferredBackupDirectory(selectedDirectory);
+  return selectedDirectory;
+}
+
+async function chooseBackupDirectoryAndCreate() {
+  const selectedDirectory = await chooseBackupDirectory();
+  if (!selectedDirectory) {
+    return { canceled: true };
+  }
+
+  const backupResult = await requestDesktopBackup("/desktop/backup/create/", {
+    targetDirectory: selectedDirectory,
+  });
+
+  return {
+    canceled: false,
+    preferredDirectory: selectedDirectory,
+    ...backupResult,
+  };
+}
+
+async function createBackupInPreferredDirectory() {
+  const preferredDirectory = getPreferredBackupDirectory();
+  const backupResult = await requestDesktopBackup("/desktop/backup/create/", {
+    targetDirectory: preferredDirectory,
+  });
+
+  return {
+    canceled: false,
+    preferredDirectory,
+    ...backupResult,
+  };
 }
 
 function startDjangoServer(port) {
@@ -277,6 +491,14 @@ if (!singleInstanceLock) {
 }
 
 app.whenReady().then(runDesktopApp);
+
+ipcMain.handle("desktop-backup:create-in-preferred-directory", async () => createBackupInPreferredDirectory());
+ipcMain.handle("desktop-backup:choose-and-create", async () => chooseBackupDirectoryAndCreate());
+ipcMain.handle("desktop-backup:get-preferred-directory", async () => getPreferredBackupDirectory());
+ipcMain.handle("desktop-backup:clear-preferred-directory", async () => {
+  clearPreferredBackupDirectory();
+  return { ok: true };
+});
 
 app.on("before-quit", () => {
   isQuitting = true;

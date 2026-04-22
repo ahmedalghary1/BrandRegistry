@@ -1,13 +1,23 @@
+import os
+import tempfile
+import json
 from decimal import Decimal
 from io import BytesIO
 from itertools import chain
+from pathlib import Path
 
 import openpyxl
+from django.conf import settings
 from django.contrib import messages
+from django.core.management import call_command
+from django.db import connections
 from django.db.models import Count
-from django.http import HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
 from openpyxl.styles import Alignment, Font, PatternFill
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
@@ -17,17 +27,73 @@ from reportlab.platypus import Image as RLImage
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .forms import (
+    DatabaseRestoreForm,
     IndustrialDesignForm,
     RecordFilterForm,
     SiteSettingsForm,
     TrademarkForm,
 )
 from .models import IndustrialDesign, SiteSettings, Trademark
+from .services.database_backup import BackupOperationError, DatabaseBackupService
 from .utils import register_arabic_font, shape_arabic, with_total_fees
 
 
 def healthcheck_view(request):
     return HttpResponse("ok", content_type="text/plain; charset=utf-8")
+
+
+def run_post_restore_steps():
+    connections.close_all()
+    call_command("migrate", "--noinput", verbosity=0)
+
+
+def get_backup_service():
+    return DatabaseBackupService(
+        database_path=Path(settings.DATABASES["default"]["NAME"]),
+        backup_dir=Path(settings.BACKUP_DIR),
+        media_root=Path(settings.MEDIA_ROOT),
+        close_connections=connections.close_all,
+        after_restore=run_post_restore_steps,
+        filename_prefix=getattr(settings, "BACKUP_FILENAME_PREFIX", "brandregistry-backup"),
+    )
+
+
+def save_uploaded_backup_to_temp_file(uploaded_file) -> Path:
+    suffix = Path(uploaded_file.name).suffix or ".sqlite3"
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+
+    try:
+        for chunk in uploaded_file.chunks():
+            temp_file.write(chunk)
+        temp_file.flush()
+    finally:
+        temp_file.close()
+
+    return Path(temp_file.name)
+
+
+def parse_json_request_body(request):
+    content_type = request.headers.get("Content-Type", "")
+    if "application/json" not in content_type:
+        return {}
+
+    if not request.body:
+        return {}
+
+    try:
+        return json.loads(request.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise BackupOperationError("تعذر قراءة بيانات الطلب المرسلة من نسخة سطح المكتب.") from exc
+
+
+def create_backup_response(target_directory: str | None = None):
+    backup_record = get_backup_service().create_backup(target_directory)
+    return {
+        "ok": True,
+        "message": f"تم إنشاء نسخة احتياطية باسم {backup_record.name}.",
+        "backupName": backup_record.name,
+        "backupPath": str(backup_record.path),
+    }
 
 
 def apply_record_filters(queryset, cleaned_data):
@@ -551,9 +617,103 @@ class SettingsView(generic.UpdateView):
     def get_object(self, queryset=None):
         return SiteSettings.get_solo()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        backup_service = get_backup_service()
+        context["restore_form"] = kwargs.get("restore_form") or DatabaseRestoreForm()
+        context["backup_records"] = backup_service.list_backups()
+        context["backup_directory"] = settings.BACKUP_DIR
+        return context
+
     def form_valid(self, form):
         messages.success(self.request, "تم تحديث إعدادات النظام بنجاح.")
         return super().form_valid(form)
+
+
+class DatabaseBackupCreateView(generic.View):
+    def post(self, request, *args, **kwargs):
+        try:
+            backup_record = get_backup_service().create_backup()
+        except BackupOperationError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(
+                request,
+                f"تم إنشاء نسخة احتياطية جديدة باسم {backup_record.name} داخل المجلد {settings.BACKUP_DIR}.",
+            )
+
+        return redirect("registry:settings")
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class DesktopBackupCreateView(generic.View):
+    def post(self, request, *args, **kwargs):
+        if not getattr(settings, "DESKTOP_LOCAL_MODE", False):
+            return JsonResponse({"ok": False, "message": "هذا المسار متاح فقط داخل نسخة سطح المكتب."}, status=403)
+
+        if request.headers.get("X-Desktop-App") != "1":
+            return JsonResponse({"ok": False, "message": "الطلب غير مصرح به."}, status=403)
+
+        try:
+            payload = parse_json_request_body(request)
+            response_payload = create_backup_response(payload.get("targetDirectory"))
+        except BackupOperationError as exc:
+            return JsonResponse({"ok": False, "message": str(exc)}, status=500)
+
+        return JsonResponse(response_payload)
+
+
+class DatabaseBackupRestoreView(generic.View):
+    def post(self, request, *args, **kwargs):
+        form = DatabaseRestoreForm(request.POST, request.FILES)
+
+        if not form.is_valid():
+            for field_errors in form.errors.values():
+                for error in field_errors:
+                    messages.error(request, error)
+            return redirect("registry:settings")
+
+        temp_backup_path = None
+        try:
+            temp_backup_path = save_uploaded_backup_to_temp_file(form.cleaned_data["backup_file"])
+            get_backup_service().restore_from_backup(temp_backup_path)
+        except BackupOperationError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, "تمت استعادة قاعدة البيانات من النسخة الاحتياطية بنجاح.")
+        finally:
+            if temp_backup_path and temp_backup_path.exists():
+                os.unlink(temp_backup_path)
+
+        return redirect("registry:settings")
+
+
+class DatabaseBackupDownloadView(generic.View):
+    def get(self, request, backup_name, *args, **kwargs):
+        try:
+            backup_path = get_backup_service().resolve_backup_path(backup_name)
+        except BackupOperationError as exc:
+            raise Http404(str(exc)) from exc
+
+        return FileResponse(backup_path.open("rb"), as_attachment=True, filename=backup_path.name)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class DesktopBackupBeforeExitView(generic.View):
+    def post(self, request, *args, **kwargs):
+        if not getattr(settings, "DESKTOP_LOCAL_MODE", False):
+            return JsonResponse({"ok": False, "message": "هذا المسار متاح فقط داخل نسخة سطح المكتب."}, status=403)
+
+        if request.headers.get("X-Desktop-App") != "1":
+            return JsonResponse({"ok": False, "message": "الطلب غير مصرح به."}, status=403)
+
+        try:
+            payload = parse_json_request_body(request)
+            response_payload = create_backup_response(payload.get("targetDirectory"))
+        except BackupOperationError as exc:
+            return JsonResponse({"ok": False, "message": str(exc)}, status=500)
+
+        return JsonResponse(response_payload)
 
 
 class NotFoundView(generic.TemplateView):

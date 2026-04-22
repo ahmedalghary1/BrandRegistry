@@ -364,3 +364,25 @@ class SiteSettingsForm(forms.ModelForm):
                 attrs={"class": FILE_CLASS, "accept": "image/*"}
             ),
         }
+
+
+class DatabaseRestoreForm(forms.Form):
+    backup_file = forms.FileField(
+        label="ملف النسخة الاحتياطية",
+        widget=forms.ClearableFileInput(
+            attrs={
+                "class": FILE_CLASS,
+                "accept": ".zip,.backup,.sqlite3,.db,application/zip,application/octet-stream",
+            }
+        ),
+    )
+
+    def clean_backup_file(self):
+        backup_file = self.cleaned_data["backup_file"]
+        name = (backup_file.name or "").lower()
+        allowed_suffixes = (".backup.zip", ".sqlite3", ".db", ".backup", ".zip")
+
+        if not name.endswith(allowed_suffixes):
+            raise ValidationError("يجب اختيار ملف نسخة احتياطية صالح بصيغة مضغوطة أو SQLite.")
+
+        return backup_file
